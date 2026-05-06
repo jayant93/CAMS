@@ -1,0 +1,20 @@
+.vscode/**
+.vscode-test/**
+src/**
+test/**
+out/test/**
+*.vsix
+**/*.map
+tsconfig.json
+DEVELOPMENT_PLAN.md
+CONTINUITY_PLAN.md
+continuity-debug-flow.html
+index.html
+.gitignore
+# sql.js runtime is vendored into lib/ — exclude the npm package
+node_modules/sql.js/**
+# Backend service is deployed separately — not needed inside the VSIX
+backend/**
+# Unused legacy AI files (BYOK design replaced by service client)
+out/ai/openrouter.js
+out/ai/models.js

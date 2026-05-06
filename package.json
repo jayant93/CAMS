@@ -1,0 +1,165 @@
+{
+  "name": "continuity",
+  "displayName": "Continuity - AI Context Handoff",
+  "description": "Never lose context when switching AI assistants. Continuity silently tracks your edits and auto-copies a structured handoff prompt the moment you open a different AI chat panel.",
+  "version": "0.2.0",
+  "publisher": "continuity",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
+  },
+  "keywords": [
+    "ai",
+    "context",
+    "handoff",
+    "copilot",
+    "claude",
+    "gemini",
+    "chatgpt",
+    "cline",
+    "continue",
+    "productivity"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/continuity-vscode/continuity.git"
+  },
+  "bugs": {
+    "url": "https://github.com/continuity-vscode/continuity/issues"
+  },
+  "homepage": "https://github.com/continuity-vscode/continuity#readme",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "continuity.startTask",
+        "title": "Continuity: Name Current Session",
+        "category": "Continuity"
+      },
+      {
+        "command": "continuity.renameTask",
+        "title": "Continuity: Rename Current Session",
+        "category": "Continuity"
+      },
+      {
+        "command": "continuity.snapshotTask",
+        "title": "Continuity: Save Context Snapshot",
+        "category": "Continuity"
+      },
+      {
+        "command": "continuity.continueTask",
+        "title": "Continuity: Continue Task In...",
+        "category": "Continuity"
+      },
+      {
+        "command": "continuity.endTask",
+        "title": "Continuity: End Session",
+        "category": "Continuity"
+      },
+      {
+        "command": "continuity.configureAI",
+        "title": "Continuity: Configure Pro",
+        "category": "Continuity"
+      },
+      {
+        "command": "continuity.refreshTier",
+        "title": "Continuity: Refresh Tier Indicator",
+        "category": "Continuity"
+      }
+    ],
+    "configuration": {
+      "title": "Continuity",
+      "properties": {
+        "continuity.offlineMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable all network calls. AI extraction and enrichment are skipped."
+        },
+        "continuity.capture.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Capture workspace file edits while a Continuity session is active."
+        },
+        "continuity.capture.maxDiffChars": {
+          "type": "number",
+          "default": 20000,
+          "minimum": 1000,
+          "description": "Maximum number of characters stored for a single file diff."
+        },
+        "continuity.capture.flushIntervalMs": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 500,
+          "description": "Debounce interval (ms) before persisting a captured file edit."
+        },
+        "continuity.prompt.maxChars": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 4000,
+          "description": "Maximum character budget for generated handoff prompts."
+        },
+        "continuity.session.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start a rolling session when VS Code opens."
+        },
+        "continuity.session.idleTimeoutMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "description": "Reserved for future idle-rotation behaviour. Currently informational."
+        },
+        "continuity.session.autoHandoffOnAssistantSwitch": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically copy a handoff prompt to the clipboard when you switch AI assistant panels."
+        },
+        "continuity.ai.enrichHandoff": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enrich auto-handoffs and snapshots with AI-inferred goal, decisions, assumptions, and pending items."
+        },
+        "continuity.ai.autoExtractOnSnapshot": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically run AI extraction when you save a context snapshot."
+        },
+        "continuity.ai.serviceUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Continuity extraction service URL (leave blank to use the default)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "tsc -p ./ && node --test out/test/parseExtraction.test.js out/test/promptEngine.test.js out/test/enrichment.test.js out/test/decisionCapture.test.js out/test/workspaceIsolation.test.js out/test/backgroundEnricher.test.js",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "diff": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/diff": "^5.2.3",
+    "@types/node": "^20.17.6",
+    "@types/sql.js": "^1.4.9",
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.2.1",
+    "sql.js": "^1.12.0",
+    "typescript": "^5.6.3"
+  }
+}
