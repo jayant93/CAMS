@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 
-const KEY_LICENSE = 'continuity.licenseKey';
-const KEY_DEVICE_ID = 'continuity.deviceId';
+const KEY_LICENSE = 'cams.licenseKey';
+const KEY_DEVICE_ID = 'cams.deviceId';
 
 export class SecretsStore {
   constructor(private readonly secrets: vscode.SecretStorage) {}

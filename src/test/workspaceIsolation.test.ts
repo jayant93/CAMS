@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { ContinuityDatabase } from '../storage/db';
+import { CamsDatabase } from '../storage/db';
 import { TaskRepository } from '../storage/taskRepository';
 
 // sql.js WASM lives next to the compiled extension output
@@ -16,16 +16,16 @@ const WASM_DIR = path.resolve(__dirname, '..', '..', 'node_modules', 'sql.js', '
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function makeWorkspace(name: string): Promise<{ db: ContinuityDatabase; repo: TaskRepository; dir: string }> {
-  const dir = path.join(os.tmpdir(), `continuity-test-${name}-${Date.now()}`);
+async function makeWorkspace(name: string): Promise<{ db: CamsDatabase; repo: TaskRepository; dir: string }> {
+  const dir = path.join(os.tmpdir(), `cams-test-${name}-${Date.now()}`);
   await fs.mkdir(dir, { recursive: true });
-  const db = new ContinuityDatabase();
+  const db = new CamsDatabase();
   await db.initializeAtPath(dir, WASM_DIR);
   const repo = new TaskRepository(db);
   return { db, repo, dir };
 }
 
-async function cleanup(dir: string, db: ContinuityDatabase): Promise<void> {
+async function cleanup(dir: string, db: CamsDatabase): Promise<void> {
   db.dispose();
   await fs.rm(dir, { recursive: true, force: true });
 }
@@ -163,11 +163,11 @@ test('snapshots and decisions saved in workspace-A are isolated from workspace-B
 });
 
 test('database persists to disk and reloads correctly across restarts', async () => {
-  const dir = path.join(os.tmpdir(), `continuity-persist-${Date.now()}`);
+  const dir = path.join(os.tmpdir(), `cams-persist-${Date.now()}`);
   await fs.mkdir(dir, { recursive: true });
 
   // First "session" — write a task
-  const db1 = new ContinuityDatabase();
+  const db1 = new CamsDatabase();
   await db1.initializeAtPath(dir, WASM_DIR);
   const repo1 = new TaskRepository(db1);
   const task = await repo1.createTask('Persist across restart');
@@ -175,7 +175,7 @@ test('database persists to disk and reloads correctly across restarts', async ()
   db1.dispose();
 
   // Second "session" — same path, simulates VS Code restart
-  const db2 = new ContinuityDatabase();
+  const db2 = new CamsDatabase();
   await db2.initializeAtPath(dir, WASM_DIR);
   const repo2 = new TaskRepository(db2);
 

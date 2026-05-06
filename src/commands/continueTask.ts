@@ -11,11 +11,11 @@ import { applyEnrichment } from '../injection/autoHandoff';
 import { copyPromptToClipboard, pickTargetAssistant } from '../injection/delivery';
 import { buildHandoffPrompt } from '../injection/promptEngine';
 import { TaskRepository } from '../storage/taskRepository';
-import { ContinuitySettings } from '../types';
+import { CamsSettings } from '../types';
 
 export interface ContinueDeps {
   repository: TaskRepository;
-  settings: () => ContinuitySettings;
+  settings: () => CamsSettings;
   secrets: SecretsStore;
   consent: ConsentManager;
   output: vscode.OutputChannel;
@@ -24,7 +24,7 @@ export interface ContinueDeps {
 export async function continueTask(deps: ContinueDeps): Promise<void> {
   const activeTask = await deps.repository.getActiveTask();
   if (!activeTask) {
-    await vscode.window.showWarningMessage('Continuity: no active session yet.');
+    await vscode.window.showWarningMessage('CAMS: no active session yet.');
     return;
   }
 
@@ -33,7 +33,7 @@ export async function continueTask(deps: ContinueDeps): Promise<void> {
 
   const ctx = await deps.repository.getTaskContext(activeTask.id);
   if (!ctx) {
-    await vscode.window.showErrorMessage('Continuity: active session context could not be loaded.');
+    await vscode.window.showErrorMessage('CAMS: active session context could not be loaded.');
     return;
   }
 
@@ -68,7 +68,7 @@ export async function continueTask(deps: ContinueDeps): Promise<void> {
   await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: `Continuity: enriching handoff via ${provider.displayName}…`
+      title: `CAMS: enriching handoff via ${provider.displayName}…`
     },
     async () => {
       try {
@@ -85,8 +85,8 @@ export async function continueTask(deps: ContinueDeps): Promise<void> {
         await vscode.env.clipboard.writeText(prompt);
         await vscode.window.showInformationMessage(
           itemCount === 0
-            ? `Continuity: handoff for ${targetAssistant} copied (AI added no new items).`
-            : `Continuity: AI-enriched handoff for ${targetAssistant} copied (+${itemCount} items).`
+            ? `CAMS: handoff for ${targetAssistant} copied (AI added no new items).`
+            : `CAMS: AI-enriched handoff for ${targetAssistant} copied (+${itemCount} items).`
         );
         deps.output.appendLine(
           `Continue: enriched handoff for ${targetAssistant} (+${itemCount} items, ${prompt.length} chars).`
@@ -96,7 +96,7 @@ export async function continueTask(deps: ContinueDeps): Promise<void> {
         deps.output.appendLine(`Continue enrichment failed: ${message}`);
         await vscode.env.clipboard.writeText(baseline);
         await vscode.window.showWarningMessage(
-          `Continuity: handoff for ${targetAssistant} copied (enrichment failed: ${message}).`
+          `CAMS: handoff for ${targetAssistant} copied (enrichment failed: ${message}).`
         );
       }
     }

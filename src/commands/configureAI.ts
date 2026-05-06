@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SecretsStore } from '../config/secrets';
 
 /**
- * "Continuity: Configure Pro" command.
+ * "CAMS: Configure Pro" command.
  * Users enter a license key to upgrade to the Pro tier (50 AI requests/day).
  * Free tier (5/day) works without any configuration.
  */
@@ -27,14 +27,14 @@ export async function configureAI(secrets: SecretsStore): Promise<void> {
       value: 'clear-key'
     },
     {
-      label: '$(gear) Open Continuity settings',
+      label: '$(gear) Open CAMS settings',
       description: 'Offline mode, capture options, service URL override.',
       value: 'open-settings'
     }
   ];
 
   const choice = await vscode.window.showQuickPick(items, {
-    title: 'Continuity: Configure Pro',
+    title: 'CAMS: Configure Pro',
     placeHolder: existing
       ? 'Pro license key is active (50 requests/day)'
       : 'Free tier active — 5 AI requests/day'
@@ -48,13 +48,13 @@ export async function configureAI(secrets: SecretsStore): Promise<void> {
     case 'clear-key':
       await secrets.clearLicenseKey();
       await vscode.window.showInformationMessage(
-        'Continuity: license key removed. Running on free tier (5 AI requests/day).'
+        'CAMS: license key removed. Running on free tier (5 AI requests/day).'
       );
       return;
     case 'open-settings':
       await vscode.commands.executeCommand(
         'workbench.action.openSettings',
-        '@ext:continuity.continuity'
+        '@ext:camsAI.camsAI'
       );
       return;
   }
@@ -62,9 +62,9 @@ export async function configureAI(secrets: SecretsStore): Promise<void> {
 
 async function setLicenseKey(secrets: SecretsStore): Promise<void> {
   const key = await vscode.window.showInputBox({
-    title: 'Continuity Pro License Key',
+    title: 'CAMS Pro License Key',
     prompt: 'Paste your license key. It is stored in VS Code SecretStorage and never logged.',
-    placeHolder: 'CONT-XXXX-XXXX-XXXX',
+    placeHolder: 'CAMS-XXXX-XXXX-XXXX',
     password: true,
     ignoreFocusOut: true,
     validateInput: (value) => {
@@ -84,6 +84,6 @@ async function setLicenseKey(secrets: SecretsStore): Promise<void> {
 
   await secrets.setLicenseKey(trimmed);
   await vscode.window.showInformationMessage(
-    'Continuity: Pro license key saved. Enjoy 50 AI context requests per day. ✨'
+    'CAMS: Pro license key saved. Enjoy 50 AI context requests per day. ✨'
   );
 }

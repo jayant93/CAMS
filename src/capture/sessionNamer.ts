@@ -3,8 +3,8 @@ import { resolveAIProvider } from '../ai';
 import { ConsentManager } from '../config/consent';
 import { SecretsStore } from '../config/secrets';
 import { TaskRepository } from '../storage/taskRepository';
-import { ContinuitySettings, TaskContext } from '../types';
-import { ContinuityStatusBar } from '../ui/statusBar';
+import { CamsSettings, TaskContext } from '../types';
+import { CamsStatusBar } from '../ui/statusBar';
 
 /** Minimum distinct files edited before we fire an AI naming call. */
 const MIN_DISTINCT_FILES = 3;
@@ -37,8 +37,8 @@ export class BackgroundSessionNamer {
     private readonly repository: TaskRepository,
     private readonly secrets: SecretsStore,
     private readonly consent: ConsentManager,
-    private readonly settings: () => ContinuitySettings,
-    private readonly statusBar: ContinuityStatusBar,
+    private readonly settings: () => CamsSettings,
+    private readonly statusBar: CamsStatusBar,
     private readonly output: vscode.OutputChannel
   ) {}
 
@@ -96,7 +96,7 @@ export class BackgroundSessionNamer {
 
     this.statusBar.setActiveTask({ ...task, name });
     vscode.window.setStatusBarMessage(
-      `$(sparkle) Continuity: session named "${name}"`,
+      `$(sparkle) CAMS: session named "${name}"`,
       6_000
     );
     this.output.appendLine(`Session AI-named: "${name}" (${distinctFiles} files touched).`);

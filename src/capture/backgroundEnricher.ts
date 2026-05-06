@@ -7,7 +7,7 @@ import {
 import { ConsentManager } from '../config/consent';
 import { SecretsStore } from '../config/secrets';
 import { TaskRepository } from '../storage/taskRepository';
-import { ContinuitySettings, ExtractionResult } from '../types';
+import { CamsSettings, ExtractionResult } from '../types';
 import { shouldEnrich } from './enrichmentGate';
 
 export { shouldEnrich } from './enrichmentGate';
@@ -27,7 +27,7 @@ export class BackgroundEnricher {
     private readonly repository: TaskRepository,
     private readonly secrets: SecretsStore,
     private readonly consent: ConsentManager,
-    private readonly settings: () => ContinuitySettings,
+    private readonly settings: () => CamsSettings,
     private readonly output: vscode.OutputChannel
   ) {}
 
@@ -73,7 +73,7 @@ export class BackgroundEnricher {
     const total = enriched.decisions.length + enriched.assumptions.length + enriched.pending.length;
     if (total > 0) {
       vscode.window.setStatusBarMessage(
-        `$(sparkle) Continuity: AI inferred ${total} item${total === 1 ? '' : 's'} from your changes`,
+        `$(sparkle) CAMS: AI inferred ${total} item${total === 1 ? '' : 's'} from your changes`,
         6_000
       );
       this.output.appendLine(

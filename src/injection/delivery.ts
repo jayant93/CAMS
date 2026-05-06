@@ -12,6 +12,6 @@ export async function pickTargetAssistant(): Promise<string | undefined> {
 export async function copyPromptToClipboard(prompt: string, targetAssistant: string): Promise<void> {
   await vscode.env.clipboard.writeText(prompt);
   await vscode.window.showInformationMessage(
-    `Continuity: context copied for ${targetAssistant}. Paste it into your target assistant.`
+    `CAMS: context copied for ${targetAssistant}. Paste it into your target assistant.`
   );
 }

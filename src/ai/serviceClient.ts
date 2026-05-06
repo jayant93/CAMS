@@ -7,7 +7,14 @@ import {
   SYSTEM_PROMPT_SESSION_NAME
 } from './prompts';
 
-export const DEFAULT_SERVICE_URL = 'https://your-service.example.com';
+/**
+ * ─── Backend URL Configuration ───────────────────────────────────────────────
+ * Change this single constant to point the extension at a different backend.
+ * Users can also override it per-machine via the `cams.ai.serviceUrl` setting.
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
+export const DEFAULT_SERVICE_URL = 'https://cams-service.cams-memory.workers.dev';
+
 const TIMEOUT_MS = 30_000;
 const MAX_INPUT_CHARS = 20_000;
 
@@ -22,9 +29,9 @@ export interface ServiceClientConfig {
  * The service handles rate-limiting (free: 5/day, pro: 50/day) and
  * all model selection/billing internally.
  */
-export class ContinuityServiceProvider implements AIProvider {
-  readonly id = 'continuity-service';
-  readonly displayName = 'Continuity AI';
+export class CamsServiceProvider implements AIProvider {
+  readonly id = 'cams-service';
+  readonly displayName = 'CAMS AI';
 
   constructor(private readonly config: ServiceClientConfig) {}
 
@@ -97,7 +104,7 @@ export class ContinuityServiceProvider implements AIProvider {
       if (!response.ok) {
         const detail = await response.text().catch(() => '');
         throw new AIProviderError(
-          `Continuity service returned HTTP ${response.status}${detail ? ` — ${detail.slice(0, 200)}` : ''}.`
+          `CAMS service returned HTTP ${response.status}${detail ? ` — ${detail.slice(0, 200)}` : ''}.`
         );
       }
 
@@ -110,10 +117,10 @@ export class ContinuityServiceProvider implements AIProvider {
     } catch (err) {
       if (err instanceof AIProviderError) throw err;
       if ((err as Error)?.name === 'AbortError') {
-        throw new AIProviderError('Continuity service request timed out.');
+        throw new AIProviderError('CAMS service request timed out.');
       }
       throw new AIProviderError(
-        `Continuity service request failed: ${(err as Error).message ?? String(err)}`,
+        `CAMS service request failed: ${(err as Error).message ?? String(err)}`,
         err
       );
     } finally {

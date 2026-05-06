@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { SqlValue } from 'sql.js';
-import { ContinuityDatabase } from './db';
+import { CamsDatabase } from './db';
 import { EventType, FileEdit, Task, TaskContext, TaskEvent } from '../types';
 
 interface TaskRow {
@@ -29,7 +29,7 @@ interface FileEditRow {
 }
 
 export class TaskRepository {
-  constructor(private readonly db: ContinuityDatabase) {}
+  constructor(private readonly db: CamsDatabase) {}
 
   async createTask(name: string): Promise<Task> {
     const now = new Date().toISOString();

@@ -9,7 +9,7 @@ import { AssistantSwitch } from '../capture/assistantWatcher';
 import { ConsentManager } from '../config/consent';
 import { SecretsStore } from '../config/secrets';
 import { TaskRepository } from '../storage/taskRepository';
-import { ContinuitySettings } from '../types';
+import { CamsSettings } from '../types';
 import { applyEnrichment } from './enrichmentContext';
 import { buildHandoffPrompt } from './promptEngine';
 
@@ -17,7 +17,7 @@ const MIN_HANDOFF_INTERVAL_MS = 30_000;
 
 export interface AutoHandoffDeps {
   repository: TaskRepository;
-  settings: () => ContinuitySettings;
+  settings: () => CamsSettings;
   output: vscode.OutputChannel;
   switchInfo: AssistantSwitch;
   flushFileWatcher: () => Promise<void>;
@@ -62,7 +62,7 @@ export async function runAutoHandoff(deps: AutoHandoffDeps): Promise<void> {
   lastHandoffAt = now;
 
   vscode.window.setStatusBarMessage(
-    `$(history) Continuity → ${deps.switchInfo.to}: handoff copied. Paste with Ctrl+V`,
+    `$(history) CAMS → ${deps.switchInfo.to}: handoff copied. Paste with Ctrl+V`,
     8_000
   );
   deps.output.appendLine(
@@ -83,7 +83,7 @@ export async function runAutoHandoff(deps: AutoHandoffDeps): Promise<void> {
     return;
   }
 
-  deps.output.appendLine('Enriching handoff via Continuity AI service…');
+  deps.output.appendLine('Enriching handoff via CAMS AI service…');
 
   try {
     const bundle = bundleActivityForEnrichment(ctx);
@@ -106,7 +106,7 @@ export async function runAutoHandoff(deps: AutoHandoffDeps): Promise<void> {
     const itemCount =
       enriched.decisions.length + enriched.assumptions.length + enriched.pending.length;
     vscode.window.setStatusBarMessage(
-      `$(sparkle) Continuity → ${deps.switchInfo.to}: AI-enriched handoff ready (+${itemCount} items)`,
+      `$(sparkle) CAMS → ${deps.switchInfo.to}: AI-enriched handoff ready (+${itemCount} items)`,
       8_000
     );
     deps.output.appendLine(
@@ -117,7 +117,7 @@ export async function runAutoHandoff(deps: AutoHandoffDeps): Promise<void> {
     // Surface rate-limit errors as a notification; swallow other failures silently.
     if (message.includes('Daily AI request limit')) {
       vscode.window.setStatusBarMessage(
-        `$(warning) Continuity: ${message}`,
+        `$(warning) CAMS: ${message}`,
         10_000
       );
     }

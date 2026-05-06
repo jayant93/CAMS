@@ -39,12 +39,12 @@ export interface TaskContext {
   fileEdits: FileEdit[];
 }
 
-export interface ContinuitySettings {
+export interface CamsSettings {
   captureEnabled: boolean;
   maxDiffChars: number;
   flushIntervalMs: number;
   promptMaxChars: number;
-  /** URL of your hosted Continuity extraction service. */
+  /** URL of your hosted CAMS extraction service. */
   serviceUrl: string;
   /** Whether to run AI extraction automatically on snapshots and handoffs. */
   aiAutoExtract: boolean;
