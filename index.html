@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Continuity — Persistent AI Context for Developers</title>
 <script>
+  // HTTPS enforcement — redirect HTTP → HTTPS in production
+  (function() {
+    var h = location.hostname;
+    if (location.protocol === 'http:' && h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.')) {
+      location.replace('https:' + window.location.href.substring(window.location.protocol.length));
+    }
+  })();
+</script>
+<script>
   // Suppress Tailwind CDN production warning — single-file standalone page
   const _warn = console.warn.bind(console);
   console.warn = (...args) => {
@@ -25,39 +34,52 @@
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
 
   :root {
-    --bg-base: #09090b;
-    --bg-surface: #18181b;
-    --bg-elevated: #27272a;
-    --border: #3f3f46;
-    --border-dim: #27272a;
-    --text-100: #f4f4f5;
-    --text-300: #d4d4d8;
-    --text-500: #71717a;
-    --text-700: #3f3f46;
-    --emerald: #10b981;
-    --emerald-400: #34d399;
-    --emerald-dim: rgba(16,185,129,0.08);
-    --emerald-glow: rgba(16,185,129,0.15);
+    /* ── Deep-Space Aurora palette ── */
+    --bg-base: #06060f;
+    --bg-surface: #0b0b1a;
+    --bg-elevated: #121228;
+    --border: #2a2a4a;
+    --border-dim: #121228;
+    --text-100: #eeeeff;
+    --text-300: #b0b0d0;
+    --text-500: #58587a;
+    --text-700: #2a2a4a;
+
+    /* Primary accent — violet (reuses --emerald token so all markup works unchanged) */
+    --emerald: #7c3aed;
+    --emerald-400: #a78bfa;
+    --emerald-dim: rgba(124,58,237,0.09);
+    --emerald-glow: rgba(124,58,237,0.20);
+
+    /* Secondary accent — cyan */
+    --cyan: #06b6d4;
+    --cyan-400: #22d3ee;
+    --cyan-dim: rgba(6,182,212,0.09);
+
+    /* Tertiary — fuchsia pop */
+    --fuchsia: #d946ef;
+    --fuchsia-dim: rgba(217,70,239,0.09);
+
     --rose: #f43f5e;
-    --rose-dim: rgba(244,63,94,0.1);
+    --rose-dim: rgba(244,63,94,0.10);
     --sky: #38bdf8;
     --amber: #f59e0b;
   }
 
   body.theme-light {
-    --bg-base: #f8fafc !important;
-    --bg-surface: #f3f4f6 !important;
-    --bg-elevated: #eef2f7 !important;
-    --border: #e4e4e7 !important;
-    --border-dim: #f4f4f5 !important;
-    --text-100: #09090b !important;
-    --text-300: #3f3f46 !important;
-    --text-500: #71717a !important;
-    --text-700: #a1a1aa !important;
-    --emerald: #059669 !important;
-    --emerald-400: #10b981 !important;
-    --emerald-dim: rgba(5,150,105,0.06) !important;
-    --emerald-glow: rgba(5,150,105,0.12) !important;
+    --bg-base: #f0f0ff !important;
+    --bg-surface: #e8e8f8 !important;
+    --bg-elevated: #ddddf5 !important;
+    --border: #c4c4e8 !important;
+    --border-dim: #ddddf5 !important;
+    --text-100: #0a0a1a !important;
+    --text-300: #2a2a4a !important;
+    --text-500: #6060a0 !important;
+    --text-700: #a0a0c4 !important;
+    --emerald: #6d28d9 !important;
+    --emerald-400: #7c3aed !important;
+    --emerald-dim: rgba(109,40,217,0.07) !important;
+    --emerald-glow: rgba(109,40,217,0.14) !important;
   }
 
   body.anim-off * {
@@ -161,12 +183,13 @@
 
   /* Nav blur */
   .nav-blur {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    background: rgba(9,9,11,0.85);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background: rgba(6,6,15,0.82);
+    border-bottom: 1px solid rgba(124,58,237,0.12) !important;
   }
   body.theme-light .nav-blur {
-    background: rgba(250,250,250,0.85) !important;
+    background: rgba(240,240,255,0.88) !important;
   }
 
   /* Emerald glow — used as fallback only; sections use precise inline radial gradients */
@@ -176,16 +199,26 @@
 
   /* Card hover */
   .card-hover {
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   }
   .card-hover:hover {
     border-color: var(--emerald) !important;
-    box-shadow: 0 0 20px rgba(16,185,129,0.08);
+    box-shadow: 0 0 0 1px rgba(124,58,237,0.3), 0 8px 32px rgba(124,58,237,0.12), 0 0 60px rgba(6,182,212,0.06);
+    background: rgba(124,58,237,0.04) !important;
+  }
+
+  /* Glassmorphism card */
+  .glass-card {
+    background: rgba(18,18,40,0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(124,58,237,0.18);
+    border-radius: 12px;
   }
 
   /* Pro card glow */
   .pro-glow {
-    box-shadow: 0 0 0 1px var(--emerald), 0 0 30px rgba(16,185,129,0.12);
+    box-shadow: 0 0 0 1px var(--emerald), 0 0 40px rgba(124,58,237,0.18), 0 0 80px rgba(6,182,212,0.06);
   }
 
   /* Tag chip */
@@ -291,6 +324,99 @@
     color: var(--border);
     line-height: 1;
   }
+
+  /* ── Aurora background blobs ── */
+  @keyframes auroraFloat1 {
+    0%,100% { transform: translate(0,0) scale(1);    opacity: 0.55; }
+    33%      { transform: translate(40px,-30px) scale(1.08); opacity: 0.65; }
+    66%      { transform: translate(-25px,20px) scale(0.93); opacity: 0.48; }
+  }
+  @keyframes auroraFloat2 {
+    0%,100% { transform: translate(0,0) scale(1);    opacity: 0.45; }
+    40%      { transform: translate(-50px,35px) scale(1.12); opacity: 0.58; }
+    75%      { transform: translate(30px,-15px) scale(0.90); opacity: 0.38; }
+  }
+  @keyframes auroraFloat3 {
+    0%,100% { transform: translate(0,0) scale(1);    opacity: 0.35; }
+    50%      { transform: translate(20px,45px) scale(1.06); opacity: 0.50; }
+  }
+
+  .aurora-blob {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  .aurora-1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124,58,237,0.28) 0%, transparent 70%);
+    top: -200px; left: -100px;
+    filter: blur(60px);
+    animation: auroraFloat1 10s ease-in-out infinite;
+  }
+  .aurora-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(6,182,212,0.22) 0%, transparent 70%);
+    top: -50px; right: -80px;
+    filter: blur(70px);
+    animation: auroraFloat2 13s ease-in-out infinite;
+  }
+  .aurora-3 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(217,70,239,0.16) 0%, transparent 70%);
+    top: 40%; left: 50%;
+    filter: blur(80px);
+    animation: auroraFloat3 9s ease-in-out infinite;
+  }
+
+  /* ── Gradient text utility ── */
+  .grad-text {
+    background: linear-gradient(135deg, var(--emerald-400) 0%, var(--cyan-400) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Gradient CTA button ── */
+  .btn-grad {
+    background: linear-gradient(135deg, var(--emerald) 0%, var(--cyan) 100%);
+    color: #fff !important;
+    box-shadow: 0 0 0 0 rgba(124,58,237,0);
+    transition: box-shadow 0.25s ease, opacity 0.2s ease;
+  }
+  .btn-grad:hover {
+    box-shadow: 0 0 28px rgba(124,58,237,0.45), 0 0 60px rgba(6,182,212,0.20);
+    opacity: 0.92;
+  }
+
+  /* ── Glow border on primary chip ── */
+  .chip-primary {
+    background: var(--emerald-dim);
+    color: var(--emerald-400);
+    border-color: rgba(124,58,237,0.35);
+    box-shadow: 0 0 12px rgba(124,58,237,0.12);
+  }
+
+  /* ── Pulse dot — violet tint ── */
+  @keyframes pulse-dot-v {
+    0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(124,58,237,0.45); }
+    50%      { opacity:0.7; box-shadow:0 0 0 5px rgba(124,58,237,0); }
+  }
+  .pulse-dot { animation: pulse-dot-v 2s ease-in-out infinite; }
+
+  /* ── Grid background — faint violet tint ── */
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--emerald); }
 </style>
 </head>
 <body style="background:var(--bg-base); color:var(--text-100);">
@@ -322,7 +448,7 @@
     <!-- CTA -->
     <div class="flex items-center gap-3">
       <span class="mono text-xs hidden sm:block" style="color:var(--text-500);">VSCode Extension</span>
-      <a href="#install" class="px-4 py-1.5 rounded text-sm font-medium transition-all" style="background:var(--emerald);color:#000;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      <a href="#install" class="btn-grad px-4 py-1.5 rounded text-sm font-medium">
         Install Free
       </a>
     </div>
@@ -331,12 +457,17 @@
 
 <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
 <section class="relative grid-bg grid-mask-hero min-h-screen flex flex-col justify-center overflow-hidden" style="padding-top:80px;">
-  <div class="max-w-7xl mx-auto px-6 py-20 w-full">
+  <!-- Aurora atmosphere blobs -->
+  <div class="aurora-blob aurora-1" aria-hidden="true"></div>
+  <div class="aurora-blob aurora-2" aria-hidden="true"></div>
+  <div class="aurora-blob aurora-3" aria-hidden="true"></div>
+
+  <div class="max-w-7xl mx-auto px-6 py-20 w-full" style="position:relative;z-index:1;">
 
     <!-- Headline -->
     <div class="max-w-4xl mb-8">
       <div class="section-label mb-5">Developer Productivity · AI Context Layer</div>
-      <h1 class="font-bold leading-tight mb-1" style="font-size:clamp(2.5rem,5vw,4rem);color:var(--text-100);">
+      <h1 class="font-bold leading-tight mb-1 grad-text" style="font-size:clamp(2.5rem,5vw,4rem);">
         Your AI workflow breaks
       </h1>
       <h1 class="font-bold leading-tight" style="font-size:clamp(2.5rem,5vw,4rem);color:var(--text-500);">
@@ -349,7 +480,7 @@
 
     <!-- CTAs -->
     <div class="flex flex-wrap items-center gap-4 mb-8">
-      <a href="#install" class="px-6 py-3 rounded font-medium transition-all text-sm" style="background:var(--emerald);color:#000;" onmouseover="this.style.boxShadow='0 0 20px rgba(16,185,129,0.3)'" onmouseout="this.style.boxShadow='none'">
+      <a href="#install" class="btn-grad px-6 py-3 rounded font-medium text-sm">
         Install for VSCode — Free
       </a>
       <a href="#solution" class="px-6 py-3 rounded font-medium text-sm transition-colors" style="border:1px solid var(--border);color:var(--text-300);" onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--text-100)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-300)'">
@@ -593,203 +724,324 @@
 
 <!-- ═══════════════════════════ SOLUTION ═══════════════════════════ -->
 <section id="solution" class="py-24 relative reveal overflow-hidden" style="border-top:1px solid var(--border-dim);">
-  <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 50% 35% at 50% 0%, rgba(16,185,129,0.07) 0%, transparent 60%);"></div>
-  <div class="max-w-7xl mx-auto px-6 relative">
-    <div class="text-center mb-12">
+  <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 50% 40% at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 60%);"></div>
+  <div class="max-w-6xl mx-auto px-6 relative">
+    <div class="text-center mb-14">
       <div class="section-label mb-4">The Solution</div>
-      <h2 class="text-4xl font-bold mb-4" style="color:var(--text-100);">One context layer.<br/>Every AI tool.</h2>
-      <p class="max-w-xl mx-auto" style="color:var(--text-500);">Continuity runs silently in the background, observing your sessions and constructing a persistent, rehydratable context graph — transferable to any supported assistant.</p>
+      <h2 class="text-4xl font-bold mb-4" style="color:var(--text-100);">Context that travels with you.<br/><span style="color:var(--text-500);">Tool to tool, automatically.</span></h2>
+      <p class="max-w-2xl mx-auto text-lg" style="color:var(--text-500);">Switch from Claude to Gemini to Copilot to Cursor. Your entire project memory — decisions, goals, constraints — follows you instantly. No copy-paste. No re-explaining. Ever.</p>
     </div>
 
-    <!-- 3-pane mini dashboard -->
-    <div class="grid md:grid-cols-3 gap-0 rounded-xl overflow-hidden" style="border:1px solid var(--border);background:var(--bg-surface);">
-      <!-- Left: Task list -->
-      <div style="border-right:1px solid var(--border);">
-        <div class="px-4 py-3 mono text-xs" style="background:var(--bg-elevated);border-bottom:1px solid var(--border);color:var(--text-500);">task_registry.json</div>
-        <div class="p-3 space-y-1.5">
-          <div class="flex items-center gap-2 p-2 rounded" style="background:var(--bg-elevated);">
-            <div class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--emerald);"></div>
-            <span class="text-xs" style="color:var(--text-300);">PaymentService refactor</span>
-            <span class="chip ml-auto" style="color:#58a6ff;border-color:rgba(88,166,255,0.3);background:rgba(88,166,255,0.05);">copilot</span>
-          </div>
-          <div class="flex items-center gap-2 p-2 rounded">
-            <div class="w-1.5 h-1.5 rounded-full" style="background:var(--amber);"></div>
-            <span class="text-xs" style="color:var(--text-300);">Auth middleware audit</span>
-            <span class="chip ml-auto" style="color:#4285f4;border-color:rgba(66,133,244,0.3);background:rgba(66,133,244,0.05);">gemini</span>
-          </div>
-          <div class="flex items-center gap-2 p-2 rounded">
-            <div class="w-1.5 h-1.5 rounded-full" style="background:var(--text-700);"></div>
-            <span class="text-xs" style="color:var(--text-500);">Rate limiter impl</span>
-            <span class="chip ml-auto" style="color:#cc785c;border-color:rgba(204,120,92,0.3);background:rgba(204,120,92,0.05);">claude</span>
-          </div>
-          <div class="flex items-center gap-2 p-2 rounded">
-            <div class="w-1.5 h-1.5 rounded-full" style="background:var(--text-700);"></div>
-            <span class="text-xs" style="color:var(--text-500);">DB index optimization</span>
-            <span class="chip ml-auto" style="color:var(--emerald);border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05);">codex</span>
-          </div>
-          <div class="mt-3 pt-3" style="border-top:1px solid var(--border-dim);">
-            <div class="mono text-xs mb-2" style="color:var(--text-700);">active tools</div>
-            <div class="flex flex-wrap gap-1">
-              <span class="chip" style="color:#58a6ff;border-color:rgba(88,166,255,0.2);">copilot</span>
-              <span class="chip" style="color:#4285f4;border-color:rgba(66,133,244,0.2);">gemini</span>
-              <span class="chip" style="color:#cc785c;border-color:rgba(204,120,92,0.2);">claude</span>
-              <span class="chip" style="color:var(--emerald);border-color:rgba(16,185,129,0.2);">codex</span>
-            </div>
-          </div>
+    <!-- ── Animated Context Flow ── -->
+    <div class="rounded-2xl overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);padding:40px 32px 32px;">
+      <div class="text-center mb-8">
+        <!-- Continuity layer badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-3" style="background:var(--emerald-dim);border:1px solid rgba(124,58,237,0.3);">
+          <div class="w-2 h-2 rounded-full pulse-dot" style="background:var(--emerald);"></div>
+          <span class="mono text-xs" style="color:var(--emerald-400);">Continuity Context Layer — active</span>
         </div>
+        <p class="text-xs" style="color:var(--text-700);">Your context is captured once and available everywhere, instantly</p>
       </div>
 
-      <!-- Center: Event timeline -->
-      <div style="border-right:1px solid var(--border);">
-        <div class="px-4 py-3 mono text-xs" style="background:var(--bg-elevated);border-bottom:1px solid var(--border);color:var(--text-500);">event_stream</div>
-        <div class="p-3 space-y-2 max-h-64 overflow-hidden">
-          <div class="flex gap-2 items-start">
-            <div class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style="background:var(--emerald);"></div>
-            <div>
-              <div class="mono text-xs" style="color:var(--emerald);">decision</div>
-              <div class="text-xs" style="color:var(--text-300);">Chose exponential backoff over fixed delay</div>
-              <div class="mono text-xs" style="color:var(--text-700);">14:22:04</div>
-            </div>
-          </div>
-          <div class="flex gap-2 items-start">
-            <div class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style="background:var(--sky);"></div>
-            <div>
-              <div class="mono text-xs" style="color:var(--sky);">handoff</div>
-              <div class="text-xs" style="color:var(--text-300);">Context packaged → Gemini</div>
-              <div class="mono text-xs" style="color:var(--text-700);">14:25:11</div>
-            </div>
-          </div>
-          <div class="flex gap-2 items-start">
-            <div class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style="background:var(--text-500);"></div>
-            <div>
-              <div class="mono text-xs" style="color:var(--text-500);">file_edit</div>
-              <div class="text-xs" style="color:var(--text-300);">PaymentService.ts +34 -12</div>
-              <div class="mono text-xs" style="color:var(--text-700);">14:26:33</div>
-            </div>
-          </div>
-          <div class="flex gap-2 items-start">
-            <div class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style="background:var(--rose);"></div>
-            <div>
-              <div class="mono text-xs" style="color:var(--rose);">failure</div>
-              <div class="text-xs" style="color:var(--text-300);">Copilot context_limit reached</div>
-              <div class="mono text-xs" style="color:var(--text-700);">14:29:55</div>
-            </div>
-          </div>
-          <div class="flex gap-2 items-start">
-            <div class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style="background:var(--emerald);"></div>
-            <div>
-              <div class="mono text-xs" style="color:var(--emerald);">decision</div>
-              <div class="text-xs" style="color:var(--text-300);">Fallback to Claude — auto-rehydrated</div>
-              <div class="mono text-xs" style="color:var(--text-700);">14:29:57</div>
-            </div>
-          </div>
-          <div class="flex gap-2 items-start">
-            <div class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style="background:var(--sky);"></div>
-            <div>
-              <div class="mono text-xs" style="color:var(--sky);">handoff</div>
-              <div class="text-xs" style="color:var(--text-300);">Session restored in 2.1s</div>
-              <div class="mono text-xs" style="color:var(--text-700);">14:30:00</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Flow animation canvas -->
+      <canvas id="flow-anim" style="width:100%;height:200px;display:block;" aria-label="Animated context flow between AI tools"></canvas>
 
-      <!-- Right: Rehydration panel -->
-      <div>
-        <div class="px-4 py-3 mono text-xs flex items-center gap-2" style="background:var(--bg-elevated);border-bottom:1px solid var(--border);color:var(--text-500);">
-          <div class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--emerald);"></div>
-          rehydration_context
+      <!-- Tool labels row -->
+      <div id="flow-labels" class="grid grid-cols-4 gap-4 mt-6">
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(204,120,92,0.12);border:1px solid rgba(204,120,92,0.3);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#cc785c" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#cc785c" stroke-width="1.5"/></svg>
+          </div>
+          <div class="text-sm font-semibold" style="color:var(--text-100);">Claude</div>
+          <div class="text-xs mt-1" style="color:var(--text-500);">Start your session</div>
+          <div class="mono text-xs mt-1" style="color:rgba(204,120,92,0.8);">context captured</div>
         </div>
-        <div class="p-3">
-          <div class="mb-3">
-            <div class="mono text-xs mb-1.5" style="color:var(--text-700);">KEY DECISIONS (3)</div>
-            <div class="space-y-1.5 text-xs" style="color:var(--text-300);">
-              <div class="p-1.5 rounded" style="background:var(--bg-elevated);">→ Exponential backoff: base=200ms, max=30s</div>
-              <div class="p-1.5 rounded" style="background:var(--bg-elevated);">→ Idempotency via payment_id header</div>
-              <div class="p-1.5 rounded" style="background:var(--bg-elevated);">→ Retry limit: 5 attempts before DLQ</div>
-            </div>
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(66,133,244,0.12);border:1px solid rgba(66,133,244,0.3);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2 L5 9 L12 16 L19 9z" stroke="#4285f4" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 15 L12 22 L19 15" stroke="#ea4335" stroke-width="1.5" stroke-linejoin="round"/></svg>
           </div>
-          <div class="mb-3">
-            <div class="mono text-xs mb-1.5" style="color:var(--rose);">ANTI-CONTEXT (2)</div>
-            <div class="space-y-1.5 text-xs" style="color:var(--text-300);">
-              <div class="p-1.5 rounded" style="background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.2);">✗ Do NOT use fixed retry delays</div>
-              <div class="p-1.5 rounded" style="background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.2);">✗ Avoid synchronous retry in controller</div>
-            </div>
+          <div class="text-sm font-semibold" style="color:var(--text-100);">Gemini</div>
+          <div class="text-xs mt-1" style="color:var(--text-500);">Switch tools freely</div>
+          <div class="mono text-xs mt-1" style="color:rgba(66,133,244,0.9);">context received</div>
+        </div>
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(88,166,255,0.12);border:1px solid rgba(88,166,255,0.3);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#58a6ff" stroke-width="1.5"/><path d="M9 12h6M12 9l3 3-3 3" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
-          <div class="mb-3">
-            <div class="mono text-xs mb-1.5" style="color:var(--text-700);">FILE POINTERS (2)</div>
-            <div class="space-y-1 text-xs mono" style="color:var(--sky);">
-              <div>src/services/PaymentService.ts:L47</div>
-              <div>src/config/retry.config.ts:L12</div>
-            </div>
+          <div class="text-sm font-semibold" style="color:var(--text-100);">Copilot</div>
+          <div class="text-xs mt-1" style="color:var(--text-500);">Keep the momentum</div>
+          <div class="mono text-xs mt-1" style="color:rgba(88,166,255,0.9);">context received</div>
+        </div>
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.3);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 3L4 14h7l-1 7 9-11h-7l1-7z" stroke="#06b6d4" stroke-width="1.5" stroke-linejoin="round"/></svg>
           </div>
-          <button class="w-full py-2 rounded text-xs font-medium mt-2 transition-all" style="background:var(--emerald-dim);border:1px solid rgba(16,185,129,0.3);color:var(--emerald);" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='var(--emerald-dim)'">
-            Copy context prompt →
-          </button>
+          <div class="text-sm font-semibold" style="color:var(--text-100);">Cursor</div>
+          <div class="text-xs mt-1" style="color:var(--text-500);">Pick up right where you left off</div>
+          <div class="mono text-xs mt-1" style="color:rgba(6,182,212,0.9);">context received</div>
         </div>
       </div>
     </div>
 
-    <p class="text-center mono text-xs mt-4" style="color:var(--text-700);">Live dashboard · updates every 2s · zero cloud dependency · all data stays local</p>
+    <!-- 3 outcome stats -->
+    <div class="grid md:grid-cols-3 gap-4 mt-6">
+      <div class="p-5 rounded-xl text-center" style="background:var(--bg-surface);border:1px solid var(--border);">
+        <div class="mono text-3xl font-bold grad-text mb-1">0 sec</div>
+        <div class="text-sm" style="color:var(--text-500);">time lost re-explaining your project</div>
+      </div>
+      <div class="p-5 rounded-xl text-center" style="background:var(--bg-surface);border:1px solid var(--border);">
+        <div class="mono text-3xl font-bold grad-text mb-1">100%</div>
+        <div class="text-sm" style="color:var(--text-500);">of your decisions carried across tools</div>
+      </div>
+      <div class="p-5 rounded-xl text-center" style="background:var(--bg-surface);border:1px solid var(--border);">
+        <div class="mono text-3xl font-bold grad-text mb-1">2.1s</div>
+        <div class="text-sm" style="color:var(--text-500);">average context transfer time</div>
+      </div>
+    </div>
   </div>
 </section>
 
+<script>
+// ── Context Flow Animation ───────────────────────────────────────────────
+(function() {
+  var canvas = document.getElementById('flow-anim');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+
+  var TOOLS = [
+    { name:'Claude',  color:'#cc785c', glow:'rgba(204,120,92,' },
+    { name:'Gemini',  color:'#4285f4', glow:'rgba(66,133,244,' },
+    { name:'Copilot', color:'#58a6ff', glow:'rgba(88,166,255,' },
+    { name:'Cursor',  color:'#06b6d4', glow:'rgba(6,182,212,'  },
+  ];
+
+  var packets = [];
+  var nodePositions = [];
+  var W, H;
+
+  function resize() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    W = rect.width - 64;
+    H = 200;
+    canvas.width  = W * window.devicePixelRatio;
+    canvas.height = H * window.devicePixelRatio;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    var spacing = W / (TOOLS.length + 1);
+    nodePositions = TOOLS.map(function(t, i) {
+      return { x: spacing * (i + 1), y: H / 2 };
+    });
+  }
+
+  function spawnPacket(fromIdx) {
+    var toIdx = fromIdx + 1;
+    if (toIdx >= TOOLS.length) return;
+    packets.push({
+      from: fromIdx, to: toIdx,
+      t: 0, speed: 0.006 + Math.random() * 0.003,
+      size: 5 + Math.random() * 3,
+      trail: [],
+      color: TOOLS[fromIdx].color
+    });
+  }
+
+  var spawnTimers = [0, 90, 180, 270];
+  var frame = 0;
+  var nodeAlpha = [1, 0.4, 0.4, 0.4];
+  var nodePulse  = [0, 0, 0, 0];
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+
+    // Spawn packets from each tool at staggered intervals
+    TOOLS.forEach(function(_, i) {
+      if (i < TOOLS.length - 1 && (frame + spawnTimers[i]) % 140 === 0) {
+        spawnPacket(i);
+      }
+    });
+
+    // Draw connection lines
+    for (var i = 0; i < nodePositions.length - 1; i++) {
+      var a = nodePositions[i], b = nodePositions[i + 1];
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = 'rgba(42,42,74,0.9)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Dashed flowing line
+      ctx.beginPath();
+      ctx.setLineDash([6, 10]);
+      ctx.lineDashOffset = -(frame * 0.4);
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = 'rgba(124,58,237,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Move + draw packets
+    for (var p = packets.length - 1; p >= 0; p--) {
+      var pk = packets[p];
+      pk.t += pk.speed;
+      if (pk.t >= 1) {
+        // Arrived — pulse target node
+        nodePulse[pk.to]  = 1;
+        nodeAlpha[pk.to]  = 1;
+        packets.splice(p, 1);
+        continue;
+      }
+
+      var fromNode = nodePositions[pk.from];
+      var toNode   = nodePositions[pk.to];
+      var ex = fromNode.x + (toNode.x - fromNode.x) * pk.t;
+      var ey = fromNode.y + (toNode.y - fromNode.y) * pk.t;
+
+      pk.trail.push({x: ex, y: ey});
+      if (pk.trail.length > 18) pk.trail.shift();
+
+      // Trail
+      for (var tr = 0; tr < pk.trail.length; tr++) {
+        var alpha = (tr / pk.trail.length) * 0.55;
+        ctx.beginPath();
+        ctx.arc(pk.trail[tr].x, pk.trail[tr].y, pk.size * 0.4 * (tr / pk.trail.length), 0, Math.PI * 2);
+        ctx.fillStyle = pk.color.replace('rgb', 'rgba').replace(')', ', ' + alpha + ')');
+        // Use a simple rgba construction
+        ctx.fillStyle = 'rgba(124,58,237,' + alpha + ')';
+        ctx.fill();
+      }
+
+      // Packet dot
+      ctx.beginPath();
+      ctx.arc(ex, ey, pk.size, 0, Math.PI * 2);
+      var g = ctx.createRadialGradient(ex, ey, 0, ex, ey, pk.size * 2.5);
+      g.addColorStop(0, pk.color);
+      g.addColorStop(1, 'rgba(124,58,237,0)');
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      // Label on packet
+      ctx.font = '9px JetBrains Mono, monospace';
+      ctx.fillStyle = 'rgba(238,238,255,0.7)';
+      ctx.textAlign = 'center';
+      ctx.fillText('ctx', ex, ey - pk.size - 4);
+    }
+
+    // Draw tool nodes
+    TOOLS.forEach(function(tool, i) {
+      var pos = nodePositions[i];
+      var pulse = nodePulse[i];
+
+      // Pulse ring
+      if (pulse > 0) {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 22 + (1 - pulse) * 20, 0, Math.PI * 2);
+        ctx.strokeStyle = tool.color + Math.round(pulse * 180).toString(16).padStart(2,'0');
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        nodePulse[i] = Math.max(0, pulse - 0.025);
+      }
+
+      // Glow
+      var gA = nodeAlpha[i];
+      var grd = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 32);
+      grd.addColorStop(0, tool.color + '44');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 32, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.globalAlpha = gA * 0.7;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Node circle
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(11,11,26,0.95)';
+      ctx.fill();
+      ctx.strokeStyle = tool.color;
+      ctx.lineWidth = gA > 0.8 ? 2.5 : 1.5;
+      ctx.globalAlpha = 0.3 + gA * 0.7;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Fade non-active nodes gently over time
+      if (nodeAlpha[i] > 0.4 && !nodePulse[i]) {
+        nodeAlpha[i] = Math.max(0.4, nodeAlpha[i] - 0.002);
+      }
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', function() { resize(); });
+  draw();
+})();
+</script>
+
 <!-- ═══════════════════════════ HOW IT WORKS ═══════════════════════════ -->
 <section id="how" class="py-24 reveal" style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-7xl mx-auto px-6">
+  <div class="max-w-6xl mx-auto px-6">
     <div class="text-center mb-14">
       <div class="section-label mb-4">How It Works</div>
-      <h2 class="text-4xl font-bold" style="color:var(--text-100);">Three operations.<br/><span style="color:var(--text-500);">Infinite continuity.</span></h2>
+      <h2 class="text-4xl font-bold" style="color:var(--text-100);">Three moments.<br/><span style="color:var(--text-500);">Seamless continuity.</span></h2>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-8">
-      <!-- 01 Observe -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="step-num mb-4">01</div>
-        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">Observe</h3>
-        <p class="text-sm mb-5" style="color:var(--text-500);">Continuity passively monitors every AI chat session in VSCode — capturing decisions, file edits, reasoning chains, and constraint statements in real time.</p>
-        <div class="rounded-lg p-3 mono text-xs" style="background:var(--bg-base);border:1px solid var(--border);">
-          <div style="color:var(--text-700);">// continuity.observe()</div>
-          <div style="color:var(--emerald);">session.on(<span style="color:var(--sky);">'message'</span>, (msg) =&gt; {</div>
-          <div class="pl-4" style="color:var(--text-300);">classifier.extract(msg,</div>
-          <div class="pl-8 mono text-xs" style="color:var(--sky);">['decision', 'constraint',</div>
-          <div class="pl-8 mono text-xs" style="color:var(--sky);">'file_ref', 'anti_context']</div>
-          <div class="pl-4" style="color:var(--text-300);">)</div>
-          <div style="color:var(--emerald);">})</div>
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <!-- 01 You work in any AI tool -->
+      <div class="p-8 rounded-2xl card-hover relative overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);">
+        <div class="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style="background:radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%);transform:translate(30%,-30%);"></div>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:var(--emerald-dim);border:1px solid rgba(124,58,237,0.25);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="var(--emerald-400)" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--emerald-400)" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="mono text-xs mb-2" style="color:var(--emerald);">STEP 01</div>
+        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">You work, Continuity watches</h3>
+        <p class="text-sm leading-relaxed" style="color:var(--text-500);">Open Claude, Gemini, Copilot, or Cursor and code naturally. In the background, Continuity silently understands what matters — your goals, decisions, and project state — without interrupting you.</p>
+        <div class="mt-5 flex flex-wrap gap-2">
+          <span class="chip" style="color:rgba(204,120,92,0.9);border-color:rgba(204,120,92,0.3);">Claude</span>
+          <span class="chip" style="color:rgba(66,133,244,0.9);border-color:rgba(66,133,244,0.3);">Gemini</span>
+          <span class="chip" style="color:rgba(88,166,255,0.9);border-color:rgba(88,166,255,0.3);">Copilot</span>
+          <span class="chip" style="color:rgba(6,182,212,0.9);border-color:rgba(6,182,212,0.3);">Cursor</span>
         </div>
       </div>
 
-      <!-- 02 Store -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="step-num mb-4">02</div>
-        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">Store</h3>
-        <p class="text-sm mb-5" style="color:var(--text-500);">Extracted events are structured into a local context graph — indexed by task, file, and time. Stored entirely on-device. No cloud, no telemetry.</p>
-        <div class="rounded-lg p-3 mono text-xs" style="background:var(--bg-base);border:1px solid var(--border);">
-          <div style="color:var(--text-700);"># context_store.json</div>
-          <div style="color:var(--text-300);">{</div>
-          <div class="pl-3"><span style="color:var(--emerald);">"decisions"</span><span style="color:var(--text-300);">: [</span></div>
-          <div class="pl-6"><span style="color:var(--sky);">"exponential backoff"</span><span style="color:var(--text-300);">,</span></div>
-          <div class="pl-6"><span style="color:var(--sky);">"idempotency via header"</span></div>
-          <div class="pl-3" style="color:var(--text-300);">],</div>
-          <div class="pl-3"><span style="color:var(--rose);">"anti_context"</span><span style="color:var(--text-300);">: [</span><span style="color:var(--sky);">"fixed delay"</span><span style="color:var(--text-300);">]</span></div>
-          <div style="color:var(--text-300);">}</div>
+      <!-- 02 You switch tools -->
+      <div class="p-8 rounded-2xl card-hover relative overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);">
+        <div class="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style="background:radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%);transform:translate(30%,-30%);"></div>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.25);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M14 7l5 5-5 5" stroke="var(--cyan-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="mono text-xs mb-2" style="color:var(--cyan);">STEP 02</div>
+        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">Switch tools — context transfers instantly</h3>
+        <p class="text-sm leading-relaxed" style="color:var(--text-500);">When you open a new AI tool or hit a context limit, Continuity automatically bridges the gap. It packages everything the new tool needs to know and hands it over — in under 3 seconds. No action required from you.</p>
+        <div class="mt-5 p-3 rounded-lg flex items-center gap-3" style="background:var(--bg-elevated);border:1px solid var(--border);">
+          <div class="w-2 h-2 rounded-full pulse-dot" style="background:var(--cyan);"></div>
+          <span class="mono text-xs" style="color:var(--cyan-400);">auto-transfer in progress...</span>
+          <span class="mono text-xs ml-auto" style="color:var(--text-700);">2.1s</span>
         </div>
       </div>
 
-      <!-- 03 Transfer -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="step-num mb-4">03</div>
-        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">Transfer</h3>
-        <p class="text-sm mb-5" style="color:var(--text-500);">On context limit or tool switch, Continuity auto-generates a dense rehydration prompt and injects it into the new session — in milliseconds.</p>
-        <div class="rounded-lg p-3 mono text-xs" style="background:var(--bg-base);border:1px solid var(--border);">
-          <div style="color:var(--text-700);">// auto-triggered on switch</div>
-          <div style="color:var(--emerald);">continuity.transfer({</div>
-          <div class="pl-4"><span style="color:var(--sky);">from</span><span style="color:var(--text-300);">: </span><span style="color:var(--sky);">'copilot'</span><span style="color:var(--text-300)">,</span></div>
-          <div class="pl-4"><span style="color:var(--sky);">to</span><span style="color:var(--text-300);">: </span><span style="color:var(--sky);">'claude'</span><span style="color:var(--text-300)">,</span></div>
-          <div class="pl-4"><span style="color:var(--sky);">latency</span><span style="color:var(--text-300);">: </span><span style="color:var(--emerald);">2100</span><span style="color:var(--text-500);"> // ms</span></div>
-          <div style="color:var(--emerald);">})</div>
+      <!-- 03 New tool knows everything -->
+      <div class="p-8 rounded-2xl card-hover relative overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);">
+        <div class="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style="background:radial-gradient(circle, rgba(217,70,239,0.07) 0%, transparent 70%);transform:translate(30%,-30%);"></div>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:var(--fuchsia-dim);border:1px solid rgba(217,70,239,0.25);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#d946ef" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#d946ef" stroke-width="1.5"/></svg>
+        </div>
+        <div class="mono text-xs mb-2" style="color:var(--fuchsia);">STEP 03</div>
+        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">New tool picks up exactly where you left off</h3>
+        <p class="text-sm leading-relaxed" style="color:var(--text-500);">The new AI tool already knows your project goals, past decisions, current task, and anything you told the previous tool. No re-explaining. No cold starts. Full speed from second one.</p>
+        <div class="mt-5 p-3 rounded-lg" style="background:rgba(217,70,239,0.06);border:1px solid rgba(217,70,239,0.2);">
+          <div class="text-xs italic" style="color:var(--text-300);">"Continuing your PaymentService refactor. Applying the exponential backoff approach we agreed on..."</div>
         </div>
       </div>
+
     </div>
   </div>
 </section>
@@ -1198,6 +1450,25 @@
           <a href="mailto:enterprise@continuity.dev" class="block hover:text-white transition-colors">Contact</a>
         </div>
       </div>
+    </div>
+
+    <!-- lokisdata partnership strip -->
+    <div class="mb-6 p-5 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4" style="background:var(--bg-elevated);border:1px solid var(--border);">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.2));border:1px solid rgba(124,58,237,0.3);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="url(#lkGrad)" stroke-width="1.5" stroke-linejoin="round"/><defs><linearGradient id="lkGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs></svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-sm font-semibold" style="color:var(--text-100);">Powered by Lokis Data</span>
+            <span class="chip" style="color:var(--emerald-400);border-color:rgba(124,58,237,0.3);background:var(--emerald-dim);">partner</span>
+          </div>
+          <p class="text-xs" style="color:var(--text-500);">Continuity's context persistence and analytics infrastructure is built on <a href="https://lokisdata.com" target="_blank" rel="noopener" class="transition-colors" style="color:var(--emerald-400);" onmouseover="this.style.color='var(--cyan-400)'" onmouseout="this.style.color='var(--emerald-400)'">lokisdata.com</a> — a developer-first data platform for AI-native applications.</p>
+        </div>
+      </div>
+      <a href="https://lokisdata.com" target="_blank" rel="noopener" class="shrink-0 px-4 py-2 rounded-lg text-xs font-medium mono transition-all" style="background:var(--bg-surface);border:1px solid var(--border);color:var(--text-300);" onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--text-100)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-300)'">
+        Visit lokisdata.com →
+      </a>
     </div>
 
     <!-- Legal bar -->
