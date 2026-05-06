@@ -41,7 +41,7 @@ npx miniflare backend/index.ts
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
 | `OPENROUTER_API_KEY` | Yes | — | Your OpenRouter key (never sent to clients) |
-| `OPENROUTER_MODEL` | No | `openai/gpt-4o-mini` | Model to use for all extractions |
+| `OPENROUTER_MODEL` | No | `deepseek/deepseek-chat:free` | Model to use for all extractions |
 | `FREE_DAILY_LIMIT` | No | `5` | AI requests/day for anonymous (free) devices |
 | `PRO_DAILY_LIMIT` | No | `50` | AI requests/day for verified Pro license keys |
 | `LICENSE_SECRET` | No | — | HMAC secret for verifying license keys (leave empty to disable Pro tier) |

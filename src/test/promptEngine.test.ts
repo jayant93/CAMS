@@ -100,7 +100,7 @@ test('buildHandoffPrompt groups diffs by file and limits each to 1 in Free mode,
     makeFileEdit({
       id: i,
       filePath: 'src/auth.ts',
-      diff: `diff body ${i}`,
+      diff: `+diff body ${i}`,
       timestamp: `2026-05-05T10:1${i}:00Z`
     })
   );
@@ -129,7 +129,7 @@ test('buildHandoffPrompt enforces character budget with truncation marker', () =
   const ctx: TaskContext = { task: baseTask, events, fileEdits: [] };
   const prompt = buildHandoffPrompt(ctx, { maxChars: 800 });
   assert.ok(prompt.length <= 800, `prompt length ${prompt.length} exceeds budget`);
-  assert.match(prompt, /truncated/i);
+  assert.match(prompt, /\(\+\d+ older items\)|truncated/i);
 });
 
 test('buildHandoffPrompt in Free mode shows helpful message for empty context', () => {
@@ -146,7 +146,7 @@ test('buildHandoffPrompt in Free mode shows diffs and hint when only diffs exist
     fileEdits: [makeFileEdit({ filePath: 'public/script.js', diff: '+const x = 1;' })]
   };
   const prompt = buildHandoffPrompt(ctx, { maxChars: 10000, isFreeMode: true });
-  assert.match(prompt, /Recent file diffs/);
+  assert.match(prompt, /Recent file changes/);
   assert.match(prompt, /public\/script\.js/);
   assert.match(prompt, /Free mode/);
 });

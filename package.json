@@ -2,7 +2,7 @@
   "name": "camsAI",
   "displayName": "camsAI - AI Context Handoff",
   "description": "Never lose context when switching AI assistants. camsAI silently tracks your edits and auto-copies a structured handoff prompt the moment you open a different AI chat panel.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "publisher": "camsAI",
   "icon": "extension/images/icon.png",
   "galleryBanner": {
