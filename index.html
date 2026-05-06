@@ -3,1588 +3,1448 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Continuity — Persistent AI Context for Developers</title>
-<script>
-  // HTTPS enforcement — redirect HTTP → HTTPS in production
-  (function() {
-    var h = location.hostname;
-    if (location.protocol === 'http:' && h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.')) {
-      location.replace('https:' + window.location.href.substring(window.location.protocol.length));
-    }
-  })();
-</script>
-<script>
-  // Suppress Tailwind CDN production warning — single-file standalone page
-  const _warn = console.warn.bind(console);
-  console.warn = (...args) => {
-    if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
-    _warn(...args);
-  };
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  // Extension install targets
-  window.__CONTINUITY_EXTENSION_ID__ = 'continuity.continuity';
-  window.__CONTINUITY_MARKETPLACE_URL__ =
-    `https://marketplace.visualstudio.com/items?itemName=${window.__CONTINUITY_EXTENSION_ID__}`;
-  window.__CONTINUITY_VSCODE_URI__ = `vscode:extension/${window.__CONTINUITY_EXTENSION_ID__}`;
-  window.__CONTINUITY_VSIX_PATH__ = 'continuity-0.2.0.vsix';
-</script>
+<title>Continuity — Context Persistence for AI-Powered Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,400&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
-
   :root {
-    /* ── Deep-Space Aurora palette ── */
-    --bg-base: #06060f;
-    --bg-surface: #0b0b1a;
-    --bg-elevated: #121228;
-    --border: #2a2a4a;
-    --border-dim: #121228;
-    --text-100: #eeeeff;
-    --text-300: #b0b0d0;
-    --text-500: #58587a;
-    --text-700: #2a2a4a;
-
-    /* Primary accent — violet (reuses --emerald token so all markup works unchanged) */
-    --emerald: #7c3aed;
-    --emerald-400: #a78bfa;
-    --emerald-dim: rgba(124,58,237,0.09);
-    --emerald-glow: rgba(124,58,237,0.20);
-
-    /* Secondary accent — cyan */
-    --cyan: #06b6d4;
-    --cyan-400: #22d3ee;
-    --cyan-dim: rgba(6,182,212,0.09);
-
-    /* Tertiary — fuchsia pop */
-    --fuchsia: #d946ef;
-    --fuchsia-dim: rgba(217,70,239,0.09);
-
-    --rose: #f43f5e;
-    --rose-dim: rgba(244,63,94,0.10);
-    --sky: #38bdf8;
-    --amber: #f59e0b;
+    --bg: #f9f9f8;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f2f1ef;
+    --bg-border: rgba(0,0,0,0.07);
+    --bg-border-strong: rgba(0,0,0,0.13);
+    --text-primary: #111110;
+    --text-secondary: #5a5955;
+    --text-muted: #a8a6a2;
+    --accent: #1e9e6a;
+    --accent-bright: #2eca8b;
+    --accent-dim: rgba(46,202,139,0.1);
+    --accent-dim2: rgba(46,202,139,0.06);
+    --green: #1e9e6a;
+    --green-dim: rgba(46,202,139,0.1);
+    --red: #c0392b;
+    --blue: #1d5fa6;
+    --blue-dim: rgba(29,95,166,0.09);
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', serif;
+    --sans: 'Geist', sans-serif;
   }
 
-  body.theme-light {
-    --bg-base: #f0f0ff !important;
-    --bg-surface: #e8e8f8 !important;
-    --bg-elevated: #ddddf5 !important;
-    --border: #c4c4e8 !important;
-    --border-dim: #ddddf5 !important;
-    --text-100: #0a0a1a !important;
-    --text-300: #2a2a4a !important;
-    --text-500: #6060a0 !important;
-    --text-700: #a0a0c4 !important;
-    --emerald: #6d28d9 !important;
-    --emerald-400: #7c3aed !important;
-    --emerald-dim: rgba(109,40,217,0.07) !important;
-    --emerald-glow: rgba(109,40,217,0.14) !important;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body.anim-off * {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; background: var(--bg-base); }
+  html { scroll-behavior: smooth; }
 
   body {
-    background: var(--bg-base);
-    color: var(--text-100);
-    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
 
-  .mono { font-family: 'JetBrains Mono', monospace; }
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
 
-  /* Grid background */
+  /* ── GRID LINES ── */
   .grid-bg {
+    position: fixed;
+    inset: 0;
     background-image:
-      linear-gradient(var(--border-dim) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border-dim) 1px, transparent 1px);
-    background-size: 40px 40px;
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
   }
 
-  .grid-mask-hero {
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
-  }
+  .content { position: relative; z-index: 1; }
 
-  .grid-mask-closing {
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 100%, black 40%, transparent 100%);
-  }
-
-  /* Token drain animation */
-  @keyframes tokenDrain {
-    0% { width: 100%; background: var(--emerald); }
-    60% { background: var(--amber); }
-    85% { width: 15%; background: var(--rose); }
-    100% { width: 3%; background: var(--rose); }
-  }
-
-  @keyframes tokenDrainMid {
-    0% { width: 100%; background: var(--emerald); }
-    50% { background: var(--amber); }
-    80% { width: 8%; background: var(--rose); }
-    100% { width: 2%; background: var(--rose); }
-  }
-
-  @keyframes tokenDrainFast {
-    0% { width: 100%; background: var(--emerald); }
-    40% { background: var(--amber); }
-    70% { width: 5%; background: var(--rose); }
-    100% { width: 1%; background: var(--rose); }
-  }
-
-  .drain-bar { animation: tokenDrain 4s ease-in-out infinite; }
-  .drain-bar-mid { animation: tokenDrainMid 3.2s ease-in-out 0.8s infinite; }
-  .drain-bar-fast { animation: tokenDrainFast 2.5s ease-in-out 1.4s infinite; }
-
-  /* Pulse dot */
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
-    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(16,185,129,0); }
-  }
-  .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
-
-  /* Caret blink */
-  @keyframes caretBlink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-  .caret-blink { animation: caretBlink 1s step-end infinite; }
-
-  /* Flowing dashed SVG lines */
-  @keyframes flowDash {
-    from { stroke-dashoffset: 100; }
-    to { stroke-dashoffset: 0; }
-  }
-  @keyframes flowDashReverse {
-    from { stroke-dashoffset: 0; }
-    to { stroke-dashoffset: 100; }
-  }
-
-  .flow-line { animation: flowDash 3s linear infinite; stroke-dasharray: 8 4; }
-  .flow-line-2 { animation: flowDash 3s linear 1s infinite; stroke-dasharray: 8 4; }
-  .flow-line-3 { animation: flowDash 3s linear 2s infinite; stroke-dasharray: 8 4; }
-
-  /* Scroll reveal */
-  .reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* Nav blur */
-  .nav-blur {
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    background: rgba(6,6,15,0.82);
-    border-bottom: 1px solid rgba(124,58,237,0.12) !important;
-  }
-  body.theme-light .nav-blur {
-    background: rgba(240,240,255,0.88) !important;
-  }
-
-  /* Emerald glow — used as fallback only; sections use precise inline radial gradients */
-  .emerald-glow-radial {
-    background: transparent;
-  }
-
-  /* Card hover */
-  .card-hover {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-  }
-  .card-hover:hover {
-    border-color: var(--emerald) !important;
-    box-shadow: 0 0 0 1px rgba(124,58,237,0.3), 0 8px 32px rgba(124,58,237,0.12), 0 0 60px rgba(6,182,212,0.06);
-    background: rgba(124,58,237,0.04) !important;
-  }
-
-  /* Glassmorphism card */
-  .glass-card {
-    background: rgba(18,18,40,0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(124,58,237,0.18);
-    border-radius: 12px;
-  }
-
-  /* Pro card glow */
-  .pro-glow {
-    box-shadow: 0 0 0 1px var(--emerald), 0 0 40px rgba(124,58,237,0.18), 0 0 80px rgba(6,182,212,0.06);
-  }
-
-  /* Tag chip */
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    border: 1px solid;
-  }
-
-  /* Tweak panel */
-  #tweak-panel {
+  /* ── NAV ── */
+  nav {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    min-width: 200px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-
-  .tweak-toggle-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 999;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 12px;
-    cursor: pointer;
-    color: var(--text-300);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    display: none;
-  }
-
-  /* Kbd style */
-  kbd {
-    display: inline-flex;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
     align-items: center;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-family: 'JetBrains Mono', monospace;
+    justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 60px;
+    background: rgba(249,249,248,0.88);
+    backdrop-filter: blur(16px);
+    border-bottom: 0.5px solid var(--bg-border);
+  }
+
+  .nav-logo {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-logo img {
+    height: 32px;
+    width: auto;
+    mix-blend-mode: multiply;
+    filter: brightness(0) saturate(100%) invert(52%) sepia(80%) saturate(400%) hue-rotate(115deg) brightness(90%);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
     font-size: 13px;
-    color: var(--emerald-400);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
   }
+  .nav-links a:hover { color: var(--text-primary); }
 
-  /* Section label */
-  .section-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+  .nav-cta {
+    font-family: var(--mono);
+    font-size: 12px;
     font-weight: 500;
-    color: var(--emerald);
-    letter-spacing: 0.12em;
+    color: #ffffff !important;
+    background: var(--accent);
+    padding: 7px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: opacity 0.2s !important;
+  }
+  .nav-cta:hover { opacity: 0.85 !important; color: #ffffff !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 2rem 80px;
+    text-align: center;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
-  /* Timeline dot connector */
-  .timeline-line {
-    position: absolute;
-    left: 7px;
-    top: 20px;
-    bottom: -20px;
-    width: 1px;
-    background: linear-gradient(to bottom, var(--border), transparent);
+  .hero-eyebrow::before,
+  .hero-eyebrow::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 0.5px;
+    background: var(--accent);
+    opacity: 0.5;
   }
 
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
+  .hero-headline {
+    font-family: var(--serif);
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 300;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    max-width: 900px;
+    margin-bottom: 1.5rem;
   }
 
-  .slide-in { animation: slideIn 0.3s ease forwards; }
+  .hero-headline em {
+    font-style: italic;
+    color: var(--accent);
+  }
 
-  /* Comparison card */
-  .context-node {
+  .hero-sub {
+    font-size: 17px;
+    color: var(--text-secondary);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    font-weight: 300;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 4rem;
+  }
+
+  .btn-primary {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+    background: var(--accent);
+    padding: 12px 28px;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  .btn-secondary {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: transparent;
+    padding: 12px 28px;
+    border-radius: 4px;
+    text-decoration: none;
+    border: 0.5px solid var(--bg-border-strong);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 0.5px solid var(--bg-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-surface);
+  }
+
+  .stat-item {
+    padding: 16px 32px;
+    border-right: 0.5px solid var(--bg-border);
+    text-align: center;
+  }
+  .stat-item:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--accent);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* ── TERMINAL DEMO ── */
+  .terminal-section {
+    padding: 100px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+
+  .section-heading {
+    font-family: var(--serif);
+    font-size: clamp(1.9rem, 3.5vw, 3rem);
+    font-weight: 300;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .section-heading em { font-style: italic; color: var(--accent); }
+
+  .section-desc {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 500px;
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 3rem;
+  }
+
+  .demo-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--bg-border);
+    border: 0.5px solid var(--bg-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .demo-panel {
+    background: var(--bg-surface);
+    padding: 0;
+  }
+
+  .demo-titlebar {
+    padding: 10px 16px;
+    background: var(--bg-elevated);
+    border-bottom: 0.5px solid var(--bg-border);
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .tool-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .badge-claude { background: rgba(200,90,40,0.1); color: #c45a28; }
+  .badge-copilot { background: rgba(29,95,166,0.1); color: #1d5fa6; }
+  .badge-gemini { background: rgba(26,107,74,0.1); color: #1a6b4a; }
+  .badge-cursor { background: rgba(120,80,200,0.1); color: #7850c8; }
+
+  .transfer-indicator {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .demo-body {
+    padding: 20px 20px 24px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    min-height: 300px;
+  }
+
+  .demo-msg { margin-bottom: 14px; }
+
+  .msg-role {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .msg-role.user { color: var(--text-muted); }
+  .msg-role.assistant { color: var(--accent); }
+
+  .msg-content {
+    color: var(--text-secondary);
     font-size: 12px;
+    line-height: 1.65;
   }
 
-  /* Step number */
-  .step-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 64px;
-    font-weight: 700;
-    color: var(--border);
-    line-height: 1;
+  .msg-content.highlight {
+    color: var(--text-primary);
   }
 
-  /* ── Aurora background blobs ── */
-  @keyframes auroraFloat1 {
-    0%,100% { transform: translate(0,0) scale(1);    opacity: 0.55; }
-    33%      { transform: translate(40px,-30px) scale(1.08); opacity: 0.65; }
-    66%      { transform: translate(-25px,20px) scale(0.93); opacity: 0.48; }
-  }
-  @keyframes auroraFloat2 {
-    0%,100% { transform: translate(0,0) scale(1);    opacity: 0.45; }
-    40%      { transform: translate(-50px,35px) scale(1.12); opacity: 0.58; }
-    75%      { transform: translate(30px,-15px) scale(0.90); opacity: 0.38; }
-  }
-  @keyframes auroraFloat3 {
-    0%,100% { transform: translate(0,0) scale(1);    opacity: 0.35; }
-    50%      { transform: translate(20px,45px) scale(1.06); opacity: 0.50; }
+  .context-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 0.5px solid var(--bg-border-strong);
+    color: var(--text-muted);
+    margin: 2px 2px 0 0;
   }
 
-  .aurora-blob {
+  .context-tag.transferred {
+    border-color: rgba(212,168,90,0.3);
+    color: var(--accent);
+    background: var(--accent-dim2);
+  }
+
+  .context-tag::before { content: '⬡'; font-size: 9px; }
+
+  .transfer-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1px;
+    background: var(--bg-border);
+    position: relative;
+  }
+
+  .arrow-badge {
     position: absolute;
+    background: var(--bg-elevated);
+    border: 0.5px solid var(--bg-border-strong);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 80px;
+    text-align: center;
+  }
+
+  .arrow-badge .transfer-ms {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-section {
+    padding: 100px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .pipeline {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--bg-border);
+    border: 0.5px solid var(--bg-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .pipe-step {
+    display: grid;
+    grid-template-columns: 60px 1fr 280px;
+    gap: 0;
+    background: var(--bg-surface);
+    transition: background 0.2s;
+  }
+  .pipe-step:hover { background: var(--bg-elevated); }
+
+  .pipe-index {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 0.5px solid var(--bg-border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .pipe-content {
+    padding: 24px 28px;
+    border-right: 0.5px solid var(--bg-border);
+  }
+
+  .pipe-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .pipe-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .pipe-meta {
+    padding: 24px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    width: fit-content;
+  }
+
+  .meta-chip.local { background: var(--green-dim); color: var(--green); }
+  .meta-chip.fast { background: var(--accent-dim); color: var(--accent); }
+  .meta-chip.auto { background: var(--blue-dim); color: var(--blue); }
+
+  /* ── CONTEXT SCHEMA ── */
+  .schema-section {
+    padding: 100px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .schema-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--bg-border);
+    border: 0.5px solid var(--bg-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 3rem;
+  }
+
+  .schema-card {
+    background: var(--bg-surface);
+    padding: 28px;
+    transition: background 0.2s;
+  }
+  .schema-card:hover { background: var(--bg-elevated); }
+
+  .schema-icon {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+
+  .schema-icon.decisions { background: var(--accent-dim); color: var(--accent); }
+  .schema-icon.anti { background: rgba(192,57,43,0.09); color: var(--red); }
+  .schema-icon.inflight { background: var(--blue-dim); color: var(--blue); }
+  .schema-icon.constraints { background: var(--green-dim); color: var(--green); }
+  .schema-icon.deps { background: rgba(120,80,200,0.09); color: #7850c8; }
+  .schema-icon.artifacts { background: var(--bg-elevated); color: var(--text-secondary); }
+
+  .schema-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .schema-desc {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .schema-example {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg-elevated);
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 0.5px solid var(--bg-border);
+    line-height: 1.6;
+  }
+
+  /* ── TOOLS COMPAT ── */
+  .tools-section {
+    padding: 100px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 3rem;
+  }
+
+  .tool-card {
+    background: var(--bg-surface);
+    border: 0.5px solid var(--bg-border);
+    border-radius: 10px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+  .tool-card:hover { border-color: var(--bg-border-strong); }
+
+  .tool-logo {
+    font-size: 24px;
+    font-family: var(--mono);
+    font-weight: 300;
+  }
+
+  .tool-name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .tool-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    width: fit-content;
+  }
+
+  .status-live { background: var(--green-dim); color: var(--green); }
+  .status-beta { background: rgba(180,120,0,0.1); color: #8a5c00; }
+  .status-soon { background: var(--bg-elevated); color: var(--text-muted); border: 0.5px solid var(--bg-border); }
+
+  .tool-latency {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: auto;
+  }
+
+  /* ── PRICING ── */
+  .pricing-section {
+    padding: 100px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--bg-border);
+    border: 0.5px solid var(--bg-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 3rem;
+  }
+
+  .pricing-card {
+    background: var(--bg-surface);
+    padding: 36px 32px;
+  }
+
+  .pricing-card.featured {
+    background: var(--bg-elevated);
+    position: relative;
+  }
+
+  .pricing-card.featured::before {
+    content: 'Most Popular';
+    position: absolute;
+    top: -1px; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: #ffffff;
+    padding: 3px 12px;
+    border-radius: 0 0 5px 5px;
+  }
+
+  .pricing-tier {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .pricing-price {
+    font-family: var(--serif);
+    font-size: 3rem;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    color: var(--text-primary);
+  }
+
+  .pricing-price sub {
+    font-size: 1rem;
+    font-family: var(--sans);
+    font-weight: 300;
+    color: var(--text-secondary);
+    vertical-align: baseline;
+  }
+
+  .pricing-cycle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .pricing-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .pricing-features li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .pricing-features li::before {
+    content: '—';
+    color: var(--text-muted);
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  .pricing-features li.on::before {
+    content: '✓';
+    color: var(--green);
+  }
+
+  .pricing-cta {
+    display: block;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .cta-ghost {
+    background: transparent;
+    border: 0.5px solid var(--bg-border-strong);
+    color: var(--text-secondary);
+  }
+  .cta-ghost:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+  .cta-accent {
+    background: var(--accent);
+    color: #ffffff;
+  }
+  .cta-accent:hover { opacity: 0.88; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 0.5px solid var(--bg-border);
+    padding: 60px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-brand .logo-text {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .footer-brand p {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 260px;
+    line-height: 1.6;
+  }
+
+  .footer-links h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    font-weight: 400;
+  }
+
+  .footer-links ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--text-primary); }
+
+  .footer-bottom {
+    border-top: 0.5px solid var(--bg-border);
+    padding: 20px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-bottom p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-section {
+    padding: 100px 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 3rem;
+  }
+
+  .testimonial-card {
+    background: var(--bg-surface);
+    border: 0.5px solid var(--bg-border);
+    border-radius: 10px;
+    padding: 24px;
+  }
+
+  .testimonial-quote {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 20px;
+    font-weight: 300;
+  }
+
+  .testimonial-quote::before { content: '"'; color: var(--accent); }
+  .testimonial-quote::after { content: '"'; color: var(--accent); }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .author-avatar {
+    width: 32px; height: 32px;
     border-radius: 50%;
-    pointer-events: none;
-    will-change: transform, opacity;
-  }
-  .aurora-1 {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(124,58,237,0.28) 0%, transparent 70%);
-    top: -200px; left: -100px;
-    filter: blur(60px);
-    animation: auroraFloat1 10s ease-in-out infinite;
-  }
-  .aurora-2 {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(6,182,212,0.22) 0%, transparent 70%);
-    top: -50px; right: -80px;
-    filter: blur(70px);
-    animation: auroraFloat2 13s ease-in-out infinite;
-  }
-  .aurora-3 {
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(217,70,239,0.16) 0%, transparent 70%);
-    top: 40%; left: 50%;
-    filter: blur(80px);
-    animation: auroraFloat3 9s ease-in-out infinite;
+    background: var(--bg-elevated);
+    border: 0.5px solid var(--bg-border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
   }
 
-  /* ── Gradient text utility ── */
-  .grad-text {
-    background: linear-gradient(135deg, var(--emerald-400) 0%, var(--cyan-400) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .author-name { font-size: 13px; font-weight: 500; }
+  .author-role { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    max-width: 1100px;
+    margin: 0 auto;
+    border: none;
+    border-top: 0.5px solid var(--bg-border);
   }
 
-  /* ── Gradient CTA button ── */
-  .btn-grad {
-    background: linear-gradient(135deg, var(--emerald) 0%, var(--cyan) 100%);
-    color: #fff !important;
-    box-shadow: 0 0 0 0 rgba(124,58,237,0);
-    transition: box-shadow 0.25s ease, opacity 0.2s ease;
-  }
-  .btn-grad:hover {
-    box-shadow: 0 0 28px rgba(124,58,237,0.45), 0 0 60px rgba(6,182,212,0.20);
-    opacity: 0.92;
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Glow border on primary chip ── */
-  .chip-primary {
-    background: var(--emerald-dim);
-    color: var(--emerald-400);
-    border-color: rgba(124,58,237,0.35);
-    box-shadow: 0 0 12px rgba(124,58,237,0.12);
+  .hero-eyebrow { animation: fadeIn 0.6s ease 0.1s both; }
+  .hero-headline { animation: fadeIn 0.6s ease 0.2s both; }
+  .hero-sub { animation: fadeIn 0.6s ease 0.3s both; }
+  .hero-actions { animation: fadeIn 0.6s ease 0.4s both; }
+  .stats-bar { animation: fadeIn 0.6s ease 0.5s both; }
+
+  /* ── CURSOR BLINK ── */
+  .blink {
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
   }
 
-  /* ── Pulse dot — violet tint ── */
-  @keyframes pulse-dot-v {
-    0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(124,58,237,0.45); }
-    50%      { opacity:0.7; box-shadow:0 0 0 5px rgba(124,58,237,0); }
-  }
-  .pulse-dot { animation: pulse-dot-v 2s ease-in-out infinite; }
-
-  /* ── Grid background — faint violet tint ── */
-  .grid-bg {
-    background-image:
-      linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
+  /* ── SCROLLING TOOLS TICKER ── */
+  .ticker-wrap {
+    overflow: hidden;
+    border-top: 0.5px solid var(--bg-border);
+    border-bottom: 0.5px solid var(--bg-border);
+    padding: 12px 0;
+    background: var(--bg-surface);
+    margin: 0;
   }
 
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg-base); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--emerald); }
+  .ticker-track {
+    display: flex;
+    gap: 3rem;
+    animation: ticker 20s linear infinite;
+    width: max-content;
+  }
+
+  .ticker-item {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ticker-item .dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
 </style>
 </head>
-<body style="background:var(--bg-base); color:var(--text-100);">
+<body>
+<div class="grid-bg"></div>
 
-<!-- ═══════════════════════════ NAV ═══════════════════════════ -->
-<nav class="nav-blur sticky top-0 z-50 border-b" style="border-color:var(--border-dim);">
-  <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-    <!-- Logo -->
-    <div class="flex items-center gap-3">
-      <div class="relative w-7 h-7">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <rect x="1" y="1" width="26" height="26" rx="4" fill="var(--emerald-dim)" stroke="var(--emerald)" stroke-width="1.5"/>
-          <rect x="7" y="7" width="14" height="14" rx="2" fill="none" stroke="var(--emerald)" stroke-width="1.5"/>
-          <rect x="10" y="10" width="8" height="8" rx="1" fill="var(--emerald)" opacity="0.7"/>
-        </svg>
-      </div>
-      <span class="font-semibold text-sm tracking-tight" style="color:var(--text-100);">Continuity</span>
-      <span class="mono text-xs px-2 py-0.5 rounded" style="background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,185,129,0.2);">v0.2.0</span>
-    </div>
-
-    <!-- Nav links -->
-    <div class="hidden md:flex items-center gap-7">
-      <a href="#problem" class="text-sm transition-colors" style="color:var(--text-500);" onmouseover="this.style.color='var(--text-100)'" onmouseout="this.style.color='var(--text-500)'">Problem</a>
-      <a href="#solution" class="text-sm transition-colors" style="color:var(--text-500);" onmouseover="this.style.color='var(--text-100)'" onmouseout="this.style.color='var(--text-500)'">Solution</a>
-      <a href="#how" class="text-sm transition-colors" style="color:var(--text-500);" onmouseover="this.style.color='var(--text-100)'" onmouseout="this.style.color='var(--text-500)'">How it works</a>
-      <a href="#pricing" class="text-sm transition-colors" style="color:var(--text-500);" onmouseover="this.style.color='var(--text-100)'" onmouseout="this.style.color='var(--text-500)'">Pricing</a>
-    </div>
-
-    <!-- CTA -->
-    <div class="flex items-center gap-3">
-      <span class="mono text-xs hidden sm:block" style="color:var(--text-500);">VSCode Extension</span>
-      <a href="#install" class="btn-grad px-4 py-1.5 rounded text-sm font-medium">
-        Install Free
-      </a>
-    </div>
-  </div>
+<div class="content">
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="continuity_brand_logo.png" alt="Continuity" />
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#context">Context schema</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#docs">Docs</a></li>
+    <li><a href="#install" class="nav-cta">Install extension ↗</a></li>
+  </ul>
 </nav>
 
-<!-- ═══════════════════════════ HERO ═══════════════════════════ -->
-<section class="relative grid-bg grid-mask-hero min-h-screen flex flex-col justify-center overflow-hidden" style="padding-top:80px;">
-  <!-- Aurora atmosphere blobs -->
-  <div class="aurora-blob aurora-1" aria-hidden="true"></div>
-  <div class="aurora-blob aurora-2" aria-hidden="true"></div>
-  <div class="aurora-blob aurora-3" aria-hidden="true"></div>
-
-  <div class="max-w-7xl mx-auto px-6 py-20 w-full" style="position:relative;z-index:1;">
-
-    <!-- Headline -->
-    <div class="max-w-4xl mb-8">
-      <div class="section-label mb-5">Developer Productivity · AI Context Layer</div>
-      <h1 class="font-bold leading-tight mb-1 grad-text" style="font-size:clamp(2.5rem,5vw,4rem);">
-        Your AI workflow breaks
-      </h1>
-      <h1 class="font-bold leading-tight" style="font-size:clamp(2.5rem,5vw,4rem);color:var(--text-500);">
-        when context runs out.
-      </h1>
-      <p class="mt-6 text-lg max-w-2xl" style="color:var(--text-500);">
-        Continuity is a VSCode extension that captures, stores, and transfers your full engineering context across Copilot, Gemini, Codex, and Claude — so you never lose your place again.
-      </p>
+<!-- HERO -->
+<section class="hero">
+  <span class="hero-eyebrow">VSCode Extension · v0.2.0 · Zero telemetry</span>
+  <h1 class="hero-headline">Context runs out.<br><em>Work doesn't have to stop.</em></h1>
+  <p class="hero-sub">
+    Continuity watches your AI agent sessions in real time. When the context window fills, 
+    it captures the exact last known state — decisions, progress, failures — as a portable packet 
+    you paste into any new chat and keep going.
+  </p>
+  <div class="hero-actions">
+    <a href="#install" class="btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Install for VSCode
+    </a>
+    <a href="#demo" class="btn-secondary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Watch demo
+    </a>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-num">94%</span>
+      <span class="stat-label">Context preserved on capture</span>
     </div>
-
-    <!-- CTAs -->
-    <div class="flex flex-wrap items-center gap-4 mb-8">
-      <a href="#install" class="btn-grad px-6 py-3 rounded font-medium text-sm">
-        Install for VSCode — Free
-      </a>
-      <a href="#solution" class="px-6 py-3 rounded font-medium text-sm transition-colors" style="border:1px solid var(--border);color:var(--text-300);" onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--text-100)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-300)'">
-        See how it works →
-      </a>
-      <kbd>code --install-extension continuity.continuity</kbd>
+    <div class="stat-item">
+      <span class="stat-num">3.2×</span>
+      <span class="stat-label">Faster session resumption</span>
     </div>
-
-    <!-- Comparison card -->
-    <div class="grid md:grid-cols-2 gap-4 mt-12 max-w-5xl">
-      <!-- Left: Fragmented -->
-      <div class="rounded-lg p-5" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-2 h-2 rounded-full" style="background:var(--rose);"></div>
-          <span class="mono text-xs" style="color:var(--rose);">FRAGMENTED</span>
-          <span class="mono text-xs ml-auto" style="color:var(--text-700);">no continuity</span>
-        </div>
-
-        <!-- Tool rows -->
-        <div class="space-y-4">
-          <!-- Copilot -->
-          <div>
-            <div class="flex justify-between items-center mb-1.5">
-              <div class="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#58a6ff" stroke-width="1.5"/><path d="M8 12h8M12 8l4 4-4 4" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round"/></svg>
-                <span class="mono text-xs" style="color:var(--text-300);">GitHub Copilot</span>
-              </div>
-              <span class="mono text-xs" style="color:var(--rose);">-94% context</span>
-            </div>
-            <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-elevated);">
-              <div class="h-full rounded-full drain-bar"></div>
-            </div>
-            <div class="mono text-xs mt-1" style="color:var(--text-700);">↳ context_limit_exceeded — reasoning lost</div>
-          </div>
-
-          <!-- Gemini -->
-          <div>
-            <div class="flex justify-between items-center mb-1.5">
-              <div class="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L6 8l6 6 6-6-6-6z" stroke="#4285f4" stroke-width="1.5"/><path d="M6 16l6 6 6-6" stroke="#ea4335" stroke-width="1.5"/></svg>
-                <span class="mono text-xs" style="color:var(--text-300);">Gemini Code</span>
-              </div>
-              <span class="mono text-xs" style="color:var(--rose);">-99% context</span>
-            </div>
-            <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-elevated);">
-              <div class="h-full rounded-full drain-bar-mid"></div>
-            </div>
-            <div class="mono text-xs mt-1" style="color:var(--text-700);">↳ new session — project state gone</div>
-          </div>
-
-          <!-- Claude -->
-          <div>
-            <div class="flex justify-between items-center mb-1.5">
-              <div class="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#cc785c" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#cc785c" stroke-width="1.5"/></svg>
-                <span class="mono text-xs" style="color:var(--text-300);">Claude / Codex</span>
-              </div>
-              <span class="mono text-xs" style="color:var(--amber);">-77% context</span>
-            </div>
-            <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-elevated);">
-              <div class="h-full rounded-full drain-bar-fast"></div>
-            </div>
-            <div class="mono text-xs mt-1" style="color:var(--text-700);">↳ manual re-priming required</div>
-          </div>
-        </div>
-
-        <div class="mt-4 pt-4 flex gap-4" style="border-top:1px solid var(--border-dim);">
-          <div><div class="mono text-xs" style="color:var(--rose);">3–8×</div><div class="text-xs" style="color:var(--text-500);">re-prompt overhead</div></div>
-          <div><div class="mono text-xs" style="color:var(--rose);">~40%</div><div class="text-xs" style="color:var(--text-500);">decisions re-made</div></div>
-          <div><div class="mono text-xs" style="color:var(--rose);">0</div><div class="text-xs" style="color:var(--text-500);">cross-tool memory</div></div>
-        </div>
-      </div>
-
-      <!-- Right: Unified -->
-      <div class="rounded-lg p-5" style="background:var(--bg-surface);border:1px solid rgba(16,185,129,0.3);box-shadow:0 0 30px rgba(16,185,129,0.06);">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-2 h-2 rounded-full pulse-dot" style="background:var(--emerald);"></div>
-          <span class="mono text-xs" style="color:var(--emerald);">UNIFIED</span>
-          <span class="mono text-xs ml-auto" style="color:var(--text-500);">continuity active</span>
-        </div>
-
-        <!-- Flow diagram SVG -->
-        <div class="flex items-center justify-center py-4">
-          <svg width="100%" height="160" viewBox="0 0 380 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Context layer -->
-            <rect x="100" y="65" width="180" height="30" rx="6" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.4)" stroke-width="1"/>
-            <text x="190" y="85" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#10b981">context_store</text>
-
-            <!-- Tool nodes -->
-            <!-- Copilot -->
-            <rect x="10" y="10" width="80" height="28" rx="5" fill="rgba(88,166,255,0.08)" stroke="rgba(88,166,255,0.3)" stroke-width="1"/>
-            <text x="50" y="29" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#58a6ff">Copilot</text>
-
-            <!-- Gemini -->
-            <rect x="10" y="66" width="80" height="28" rx="5" fill="rgba(66,133,244,0.08)" stroke="rgba(66,133,244,0.3)" stroke-width="1"/>
-            <text x="50" y="85" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#4285f4">Gemini</text>
-
-            <!-- Claude -->
-            <rect x="10" y="122" width="80" height="28" rx="5" fill="rgba(204,120,92,0.08)" stroke="rgba(204,120,92,0.3)" stroke-width="1"/>
-            <text x="50" y="141" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#cc785c">Claude</text>
-
-            <!-- Codex -->
-            <rect x="290" y="66" width="80" height="28" rx="5" fill="rgba(52,211,153,0.08)" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
-            <text x="330" y="85" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#34d399">Codex</text>
-
-            <!-- Lines: tools → context_store -->
-            <!-- Copilot → store -->
-            <path d="M90 24 Q95 24 100 80" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" fill="none" class="flow-line"/>
-            <!-- Gemini → store -->
-            <line x1="90" y1="80" x2="100" y2="80" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" class="flow-line-2"/>
-            <!-- Claude → store -->
-            <path d="M90 136 Q95 136 100 85" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" fill="none" class="flow-line-3"/>
-            <!-- store → Codex -->
-            <line x1="280" y1="80" x2="290" y2="80" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" class="flow-line"/>
-
-            <!-- Arrows -->
-            <polygon points="100,77 94,74 94,83" fill="rgba(16,185,129,0.5)"/>
-            <polygon points="290,77 284,74 284,83" fill="rgba(16,185,129,0.5)"/>
-
-            <!-- Labels -->
-            <text x="190" y="115" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="rgba(16,185,129,0.5)">decisions · state · history</text>
-          </svg>
-        </div>
-
-        <div class="mt-2 pt-4 flex gap-4" style="border-top:1px solid var(--border-dim);">
-          <div><div class="mono text-xs" style="color:var(--emerald);">0×</div><div class="text-xs" style="color:var(--text-500);">re-prompt overhead</div></div>
-          <div><div class="mono text-xs" style="color:var(--emerald);">100%</div><div class="text-xs" style="color:var(--text-500);">decisions retained</div></div>
-          <div><div class="mono text-xs" style="color:var(--emerald);">4</div><div class="text-xs" style="color:var(--text-500);">tools unified</div></div>
-        </div>
-      </div>
+    <div class="stat-item">
+      <span class="stat-num">&lt;1s</span>
+      <span class="stat-label">State packet generation</span>
     </div>
-
-    <!-- Pain points strip -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-8 max-w-5xl">
-      <div class="p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-1" style="color:var(--rose);">01</div>
-        <div class="text-xs" style="color:var(--text-300);">Context limit hit</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-500);">mid-session</div>
-      </div>
-      <div class="p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-1" style="color:var(--rose);">02</div>
-        <div class="text-xs" style="color:var(--text-300);">Tool switching</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-500);">loses history</div>
-      </div>
-      <div class="p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-1" style="color:var(--amber);">03</div>
-        <div class="text-xs" style="color:var(--text-300);">Re-explaining</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-500);">project every time</div>
-      </div>
-      <div class="p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-1" style="color:var(--amber);">04</div>
-        <div class="text-xs" style="color:var(--text-300);">Decisions re-made</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-500);">no shared memory</div>
-      </div>
-      <div class="p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-1" style="color:var(--rose);">05</div>
-        <div class="text-xs" style="color:var(--text-300);">Productivity</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-500);">halted on reset</div>
-      </div>
+    <div class="stat-item">
+      <span class="stat-num">100%</span>
+      <span class="stat-label">Local — no cloud</span>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════ PROBLEM ═══════════════════════════ -->
-<section id="problem" class="py-24 reveal" style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="grid md:grid-cols-2 gap-16 items-start">
-      <!-- Left -->
-      <div>
-        <div class="section-label mb-4">The Problem</div>
-        <h2 class="text-4xl font-bold mb-6 leading-tight" style="color:var(--text-100);">
-          AI assistants are stateless.<br/>
-          <span style="color:var(--text-500);">Your work isn't.</span>
-        </h2>
-        <blockquote class="p-5 rounded-lg border-l-2 my-8" style="background:var(--bg-surface);border-color:var(--rose);border-left-width:3px;">
-          <p class="text-sm leading-relaxed" style="color:var(--text-300);">"I spent 40 minutes re-explaining our auth architecture to Copilot after switching to Gemini for a different task. Both had the same context — but neither knew about the other."</p>
-          <div class="mono text-xs mt-3" style="color:var(--text-500);">— Senior Eng, FinTech startup</div>
-        </blockquote>
-        <div class="space-y-3 text-sm" style="color:var(--text-500);">
-          <p>Every time a context window fills up, your AI assistant forgets everything — the architecture decisions, the constraints, the half-finished reasoning chains. You're not building software anymore; you're babysitting attention spans.</p>
-          <p>Switch tools? Start from zero. Hit the limit? Re-explain everything. The problem isn't the model. It's the missing persistence layer.</p>
-        </div>
-      </div>
-
-      <!-- Right -->
-      <div class="space-y-4">
-        <!-- Mock VSCode chat panel -->
-        <div class="rounded-lg overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);">
-          <div class="flex items-center justify-between px-4 py-2.5" style="background:var(--bg-elevated);border-bottom:1px solid var(--border);">
-            <div class="flex items-center gap-2">
-              <div class="w-3 h-3 rounded-full" style="background:#ff5f57;"></div>
-              <div class="w-3 h-3 rounded-full" style="background:#ffbd2e;"></div>
-              <div class="w-3 h-3 rounded-full" style="background:#28c940;"></div>
-              <span class="mono text-xs ml-3" style="color:var(--text-500);">Copilot Chat — workspace</span>
-            </div>
-          </div>
-          <div class="p-4 space-y-3" style="min-height:180px;">
-            <div class="flex gap-2">
-              <div class="w-5 h-5 rounded shrink-0 flex items-center justify-center mono text-xs" style="background:rgba(88,166,255,0.2);color:#58a6ff;">U</div>
-              <div class="text-xs p-2 rounded" style="background:var(--bg-elevated);color:var(--text-300);">Continue refactoring the PaymentService — we need to handle the retry backoff we designed earlier</div>
-            </div>
-            <div class="flex gap-2">
-              <div class="w-5 h-5 rounded shrink-0 flex items-center justify-center mono text-xs" style="background:rgba(52,211,153,0.2);color:var(--emerald);">C</div>
-              <div class="text-xs p-2 rounded" style="background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.3);color:var(--rose);">
-                <span class="mono">ERROR: context_limit_exceeded</span>
-                <div class="mt-1" style="color:var(--text-300);">I don't have context about a retry backoff design. Could you share the relevant code or explain the approach you had in mind?</div>
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <div class="w-5 h-5 rounded shrink-0 flex items-center justify-center mono text-xs" style="background:rgba(88,166,255,0.2);color:#58a6ff;">U</div>
-              <div class="text-xs p-2 rounded" style="background:var(--bg-elevated);color:var(--text-300);">
-                We spent 2 hours on this...<span class="caret-blink">▋</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Consequence cards 2x2 -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="p-4 rounded-lg card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-            <div class="mono text-xs mb-2" style="color:var(--rose);">reasoning_lost</div>
-            <div class="text-xs" style="color:var(--text-500);">Architecture decisions, constraint analysis, and multi-step plans vanish at context boundary.</div>
-          </div>
-          <div class="p-4 rounded-lg card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-            <div class="mono text-xs mb-2" style="color:var(--rose);">state_gone</div>
-            <div class="text-xs" style="color:var(--text-500);">Project structure, in-flight tasks, and file-level understanding reset to zero.</div>
-          </div>
-          <div class="p-4 rounded-lg card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-            <div class="mono text-xs mb-2" style="color:var(--amber);">manual_switch</div>
-            <div class="text-xs" style="color:var(--text-500);">Changing tools requires hand-crafting a full context re-primer. Every. Single. Time.</div>
-          </div>
-          <div class="p-4 rounded-lg card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-            <div class="mono text-xs mb-2" style="color:var(--rose);">outcome_restart</div>
-            <div class="text-xs" style="color:var(--text-500);">Incomplete sessions stall. New sessions start cold. Velocity collapses at scale.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════ SOLUTION ═══════════════════════════ -->
-<section id="solution" class="py-24 relative reveal overflow-hidden" style="border-top:1px solid var(--border-dim);">
-  <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 50% 40% at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 60%);"></div>
-  <div class="max-w-6xl mx-auto px-6 relative">
-    <div class="text-center mb-14">
-      <div class="section-label mb-4">The Solution</div>
-      <h2 class="text-4xl font-bold mb-4" style="color:var(--text-100);">Context that travels with you.<br/><span style="color:var(--text-500);">Tool to tool, automatically.</span></h2>
-      <p class="max-w-2xl mx-auto text-lg" style="color:var(--text-500);">Switch from Claude to Gemini to Copilot to Cursor. Your entire project memory — decisions, goals, constraints — follows you instantly. No copy-paste. No re-explaining. Ever.</p>
-    </div>
-
-    <!-- ── Animated Context Flow ── -->
-    <div class="rounded-2xl overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);padding:40px 32px 32px;">
-      <div class="text-center mb-8">
-        <!-- Continuity layer badge -->
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-3" style="background:var(--emerald-dim);border:1px solid rgba(124,58,237,0.3);">
-          <div class="w-2 h-2 rounded-full pulse-dot" style="background:var(--emerald);"></div>
-          <span class="mono text-xs" style="color:var(--emerald-400);">Continuity Context Layer — active</span>
-        </div>
-        <p class="text-xs" style="color:var(--text-700);">Your context is captured once and available everywhere, instantly</p>
-      </div>
-
-      <!-- Flow animation canvas -->
-      <canvas id="flow-anim" style="width:100%;height:200px;display:block;" aria-label="Animated context flow between AI tools"></canvas>
-
-      <!-- Tool labels row -->
-      <div id="flow-labels" class="grid grid-cols-4 gap-4 mt-6">
-        <div class="text-center">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(204,120,92,0.12);border:1px solid rgba(204,120,92,0.3);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#cc785c" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#cc785c" stroke-width="1.5"/></svg>
-          </div>
-          <div class="text-sm font-semibold" style="color:var(--text-100);">Claude</div>
-          <div class="text-xs mt-1" style="color:var(--text-500);">Start your session</div>
-          <div class="mono text-xs mt-1" style="color:rgba(204,120,92,0.8);">context captured</div>
-        </div>
-        <div class="text-center">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(66,133,244,0.12);border:1px solid rgba(66,133,244,0.3);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2 L5 9 L12 16 L19 9z" stroke="#4285f4" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 15 L12 22 L19 15" stroke="#ea4335" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="text-sm font-semibold" style="color:var(--text-100);">Gemini</div>
-          <div class="text-xs mt-1" style="color:var(--text-500);">Switch tools freely</div>
-          <div class="mono text-xs mt-1" style="color:rgba(66,133,244,0.9);">context received</div>
-        </div>
-        <div class="text-center">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(88,166,255,0.12);border:1px solid rgba(88,166,255,0.3);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#58a6ff" stroke-width="1.5"/><path d="M9 12h6M12 9l3 3-3 3" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="text-sm font-semibold" style="color:var(--text-100);">Copilot</div>
-          <div class="text-xs mt-1" style="color:var(--text-500);">Keep the momentum</div>
-          <div class="mono text-xs mt-1" style="color:rgba(88,166,255,0.9);">context received</div>
-        </div>
-        <div class="text-center">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-2 mx-auto" style="background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.3);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 3L4 14h7l-1 7 9-11h-7l1-7z" stroke="#06b6d4" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="text-sm font-semibold" style="color:var(--text-100);">Cursor</div>
-          <div class="text-xs mt-1" style="color:var(--text-500);">Pick up right where you left off</div>
-          <div class="mono text-xs mt-1" style="color:rgba(6,182,212,0.9);">context received</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3 outcome stats -->
-    <div class="grid md:grid-cols-3 gap-4 mt-6">
-      <div class="p-5 rounded-xl text-center" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-3xl font-bold grad-text mb-1">0 sec</div>
-        <div class="text-sm" style="color:var(--text-500);">time lost re-explaining your project</div>
-      </div>
-      <div class="p-5 rounded-xl text-center" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-3xl font-bold grad-text mb-1">100%</div>
-        <div class="text-sm" style="color:var(--text-500);">of your decisions carried across tools</div>
-      </div>
-      <div class="p-5 rounded-xl text-center" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-3xl font-bold grad-text mb-1">2.1s</div>
-        <div class="text-sm" style="color:var(--text-500);">average context transfer time</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<script>
-// ── Context Flow Animation ───────────────────────────────────────────────
-(function() {
-  var canvas = document.getElementById('flow-anim');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-
-  var TOOLS = [
-    { name:'Claude',  color:'#cc785c', glow:'rgba(204,120,92,' },
-    { name:'Gemini',  color:'#4285f4', glow:'rgba(66,133,244,' },
-    { name:'Copilot', color:'#58a6ff', glow:'rgba(88,166,255,' },
-    { name:'Cursor',  color:'#06b6d4', glow:'rgba(6,182,212,'  },
-  ];
-
-  var packets = [];
-  var nodePositions = [];
-  var W, H;
-
-  function resize() {
-    var rect = canvas.parentElement.getBoundingClientRect();
-    W = rect.width - 64;
-    H = 200;
-    canvas.width  = W * window.devicePixelRatio;
-    canvas.height = H * window.devicePixelRatio;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
-    var spacing = W / (TOOLS.length + 1);
-    nodePositions = TOOLS.map(function(t, i) {
-      return { x: spacing * (i + 1), y: H / 2 };
-    });
-  }
-
-  function spawnPacket(fromIdx) {
-    var toIdx = fromIdx + 1;
-    if (toIdx >= TOOLS.length) return;
-    packets.push({
-      from: fromIdx, to: toIdx,
-      t: 0, speed: 0.006 + Math.random() * 0.003,
-      size: 5 + Math.random() * 3,
-      trail: [],
-      color: TOOLS[fromIdx].color
-    });
-  }
-
-  var spawnTimers = [0, 90, 180, 270];
-  var frame = 0;
-  var nodeAlpha = [1, 0.4, 0.4, 0.4];
-  var nodePulse  = [0, 0, 0, 0];
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    frame++;
-
-    // Spawn packets from each tool at staggered intervals
-    TOOLS.forEach(function(_, i) {
-      if (i < TOOLS.length - 1 && (frame + spawnTimers[i]) % 140 === 0) {
-        spawnPacket(i);
-      }
-    });
-
-    // Draw connection lines
-    for (var i = 0; i < nodePositions.length - 1; i++) {
-      var a = nodePositions[i], b = nodePositions[i + 1];
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(b.x, b.y);
-      ctx.strokeStyle = 'rgba(42,42,74,0.9)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Dashed flowing line
-      ctx.beginPath();
-      ctx.setLineDash([6, 10]);
-      ctx.lineDashOffset = -(frame * 0.4);
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(b.x, b.y);
-      ctx.strokeStyle = 'rgba(124,58,237,0.25)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // Move + draw packets
-    for (var p = packets.length - 1; p >= 0; p--) {
-      var pk = packets[p];
-      pk.t += pk.speed;
-      if (pk.t >= 1) {
-        // Arrived — pulse target node
-        nodePulse[pk.to]  = 1;
-        nodeAlpha[pk.to]  = 1;
-        packets.splice(p, 1);
-        continue;
-      }
-
-      var fromNode = nodePositions[pk.from];
-      var toNode   = nodePositions[pk.to];
-      var ex = fromNode.x + (toNode.x - fromNode.x) * pk.t;
-      var ey = fromNode.y + (toNode.y - fromNode.y) * pk.t;
-
-      pk.trail.push({x: ex, y: ey});
-      if (pk.trail.length > 18) pk.trail.shift();
-
-      // Trail
-      for (var tr = 0; tr < pk.trail.length; tr++) {
-        var alpha = (tr / pk.trail.length) * 0.55;
-        ctx.beginPath();
-        ctx.arc(pk.trail[tr].x, pk.trail[tr].y, pk.size * 0.4 * (tr / pk.trail.length), 0, Math.PI * 2);
-        ctx.fillStyle = pk.color.replace('rgb', 'rgba').replace(')', ', ' + alpha + ')');
-        // Use a simple rgba construction
-        ctx.fillStyle = 'rgba(124,58,237,' + alpha + ')';
-        ctx.fill();
-      }
-
-      // Packet dot
-      ctx.beginPath();
-      ctx.arc(ex, ey, pk.size, 0, Math.PI * 2);
-      var g = ctx.createRadialGradient(ex, ey, 0, ex, ey, pk.size * 2.5);
-      g.addColorStop(0, pk.color);
-      g.addColorStop(1, 'rgba(124,58,237,0)');
-      ctx.fillStyle = g;
-      ctx.fill();
-
-      // Label on packet
-      ctx.font = '9px JetBrains Mono, monospace';
-      ctx.fillStyle = 'rgba(238,238,255,0.7)';
-      ctx.textAlign = 'center';
-      ctx.fillText('ctx', ex, ey - pk.size - 4);
-    }
-
-    // Draw tool nodes
-    TOOLS.forEach(function(tool, i) {
-      var pos = nodePositions[i];
-      var pulse = nodePulse[i];
-
-      // Pulse ring
-      if (pulse > 0) {
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, 22 + (1 - pulse) * 20, 0, Math.PI * 2);
-        ctx.strokeStyle = tool.color + Math.round(pulse * 180).toString(16).padStart(2,'0');
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        nodePulse[i] = Math.max(0, pulse - 0.025);
-      }
-
-      // Glow
-      var gA = nodeAlpha[i];
-      var grd = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 32);
-      grd.addColorStop(0, tool.color + '44');
-      grd.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 32, 0, Math.PI * 2);
-      ctx.fillStyle = grd;
-      ctx.globalAlpha = gA * 0.7;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-
-      // Node circle
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(11,11,26,0.95)';
-      ctx.fill();
-      ctx.strokeStyle = tool.color;
-      ctx.lineWidth = gA > 0.8 ? 2.5 : 1.5;
-      ctx.globalAlpha = 0.3 + gA * 0.7;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-
-      // Fade non-active nodes gently over time
-      if (nodeAlpha[i] > 0.4 && !nodePulse[i]) {
-        nodeAlpha[i] = Math.max(0.4, nodeAlpha[i] - 0.002);
-      }
-    });
-
-    requestAnimationFrame(draw);
-  }
-
-  resize();
-  window.addEventListener('resize', function() { resize(); });
-  draw();
-})();
-</script>
-
-<!-- ═══════════════════════════ HOW IT WORKS ═══════════════════════════ -->
-<section id="how" class="py-24 reveal" style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-6xl mx-auto px-6">
-    <div class="text-center mb-14">
-      <div class="section-label mb-4">How It Works</div>
-      <h2 class="text-4xl font-bold" style="color:var(--text-100);">Three moments.<br/><span style="color:var(--text-500);">Seamless continuity.</span></h2>
-    </div>
-
-    <div class="grid md:grid-cols-3 gap-6">
-
-      <!-- 01 You work in any AI tool -->
-      <div class="p-8 rounded-2xl card-hover relative overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style="background:radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%);transform:translate(30%,-30%);"></div>
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:var(--emerald-dim);border:1px solid rgba(124,58,237,0.25);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="var(--emerald-400)" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--emerald-400)" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <div class="mono text-xs mb-2" style="color:var(--emerald);">STEP 01</div>
-        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">You work, Continuity watches</h3>
-        <p class="text-sm leading-relaxed" style="color:var(--text-500);">Open Claude, Gemini, Copilot, or Cursor and code naturally. In the background, Continuity silently understands what matters — your goals, decisions, and project state — without interrupting you.</p>
-        <div class="mt-5 flex flex-wrap gap-2">
-          <span class="chip" style="color:rgba(204,120,92,0.9);border-color:rgba(204,120,92,0.3);">Claude</span>
-          <span class="chip" style="color:rgba(66,133,244,0.9);border-color:rgba(66,133,244,0.3);">Gemini</span>
-          <span class="chip" style="color:rgba(88,166,255,0.9);border-color:rgba(88,166,255,0.3);">Copilot</span>
-          <span class="chip" style="color:rgba(6,182,212,0.9);border-color:rgba(6,182,212,0.3);">Cursor</span>
-        </div>
-      </div>
-
-      <!-- 02 You switch tools -->
-      <div class="p-8 rounded-2xl card-hover relative overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style="background:radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%);transform:translate(30%,-30%);"></div>
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.25);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M14 7l5 5-5 5" stroke="var(--cyan-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div class="mono text-xs mb-2" style="color:var(--cyan);">STEP 02</div>
-        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">Switch tools — context transfers instantly</h3>
-        <p class="text-sm leading-relaxed" style="color:var(--text-500);">When you open a new AI tool or hit a context limit, Continuity automatically bridges the gap. It packages everything the new tool needs to know and hands it over — in under 3 seconds. No action required from you.</p>
-        <div class="mt-5 p-3 rounded-lg flex items-center gap-3" style="background:var(--bg-elevated);border:1px solid var(--border);">
-          <div class="w-2 h-2 rounded-full pulse-dot" style="background:var(--cyan);"></div>
-          <span class="mono text-xs" style="color:var(--cyan-400);">auto-transfer in progress...</span>
-          <span class="mono text-xs ml-auto" style="color:var(--text-700);">2.1s</span>
-        </div>
-      </div>
-
-      <!-- 03 New tool knows everything -->
-      <div class="p-8 rounded-2xl card-hover relative overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style="background:radial-gradient(circle, rgba(217,70,239,0.07) 0%, transparent 70%);transform:translate(30%,-30%);"></div>
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:var(--fuchsia-dim);border:1px solid rgba(217,70,239,0.25);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#d946ef" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#d946ef" stroke-width="1.5"/></svg>
-        </div>
-        <div class="mono text-xs mb-2" style="color:var(--fuchsia);">STEP 03</div>
-        <h3 class="text-xl font-semibold mb-3" style="color:var(--text-100);">New tool picks up exactly where you left off</h3>
-        <p class="text-sm leading-relaxed" style="color:var(--text-500);">The new AI tool already knows your project goals, past decisions, current task, and anything you told the previous tool. No re-explaining. No cold starts. Full speed from second one.</p>
-        <div class="mt-5 p-3 rounded-lg" style="background:rgba(217,70,239,0.06);border:1px solid rgba(217,70,239,0.2);">
-          <div class="text-xs italic" style="color:var(--text-300);">"Continuing your PaymentService refactor. Applying the exponential backoff approach we agreed on..."</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════ FEATURES ═══════════════════════════ -->
-<section id="features" class="py-24 reveal" style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="text-center mb-14">
-      <div class="section-label mb-4">Features</div>
-      <h2 class="text-4xl font-bold" style="color:var(--text-100);">Everything context.<br/><span style="color:var(--text-500);">Nothing else.</span></h2>
-    </div>
-
-    <div class="grid md:grid-cols-3 gap-4">
-      <!-- Cross-model memory -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mb-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="3" stroke="var(--emerald)" stroke-width="1.5"/><circle cx="19" cy="5" r="3" stroke="var(--emerald)" stroke-width="1.5"/><circle cx="19" cy="19" r="3" stroke="var(--emerald)" stroke-width="1.5"/><line x1="8" y1="11" x2="16" y2="6" stroke="var(--emerald)" stroke-width="1" stroke-dasharray="2 2"/><line x1="8" y1="13" x2="16" y2="18" stroke="var(--emerald)" stroke-width="1" stroke-dasharray="2 2"/></svg>
-        </div>
-        <h3 class="font-semibold mb-2" style="color:var(--text-100);">Cross-model memory</h3>
-        <p class="text-sm" style="color:var(--text-500);">Decisions made in Copilot are available in Claude. Context flows across tool boundaries automatically.</p>
-      </div>
-
-      <!-- Auto reconstruction -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mb-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 018-8" stroke="var(--sky)" stroke-width="1.5" stroke-linecap="round"/><path d="M20 12a8 8 0 01-8 8" stroke="var(--sky)" stroke-width="1.5" stroke-linecap="round"/><polyline points="9 4 4 4 4 9" stroke="var(--sky)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="15 20 20 20 20 15" stroke="var(--sky)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3 class="font-semibold mb-2" style="color:var(--text-100);">Automatic reconstruction</h3>
-        <p class="text-sm" style="color:var(--text-500);">On context reset, Continuity rebuilds the session state in under 3 seconds. No manual re-priming needed.</p>
-      </div>
-
-      <!-- Tool compatibility -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mb-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="2" stroke="var(--amber)" stroke-width="1.5"/><rect x="13" y="3" width="8" height="8" rx="2" stroke="var(--amber)" stroke-width="1.5"/><rect x="3" y="13" width="8" height="8" rx="2" stroke="var(--amber)" stroke-width="1.5"/><rect x="13" y="13" width="8" height="8" rx="2" stroke="var(--amber)" stroke-width="1.5"/></svg>
-        </div>
-        <h3 class="font-semibold mb-2" style="color:var(--text-100);">Tool compatibility</h3>
-        <p class="text-sm mb-3" style="color:var(--text-500);">Native support for all major AI coding assistants inside VSCode.</p>
-        <div class="flex flex-wrap gap-1">
-          <span class="chip" style="color:#58a6ff;border-color:rgba(88,166,255,0.3);">Copilot</span>
-          <span class="chip" style="color:#4285f4;border-color:rgba(66,133,244,0.3);">Gemini</span>
-          <span class="chip" style="color:#cc785c;border-color:rgba(204,120,92,0.3);">Claude</span>
-          <span class="chip" style="color:var(--emerald);border-color:rgba(16,185,129,0.3);">Codex</span>
-        </div>
-      </div>
-
-      <!-- Zero prompt rewriting -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mb-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="var(--emerald)" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/><circle cx="12" cy="12" r="6" stroke="var(--emerald)" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="var(--emerald)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3 class="font-semibold mb-2" style="color:var(--text-100);">Zero prompt rewriting</h3>
-        <p class="text-sm" style="color:var(--text-500);">Continuity generates context handoff prompts automatically. You never write a re-primer again.</p>
-      </div>
-
-      <!-- Background execution -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mb-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="var(--sky)" stroke-width="1.5"/><line x1="8" y1="21" x2="16" y2="21" stroke="var(--sky)" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="var(--sky)" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="10" r="2" fill="var(--sky)" opacity="0.4"/></svg>
-        </div>
-        <h3 class="font-semibold mb-2" style="color:var(--text-100);">Background execution</h3>
-        <p class="text-sm" style="color:var(--text-500);">Runs as a VSCode extension process. Zero impact on editor performance. Invisible until you need it.</p>
-      </div>
-
-      <!-- Session stitching -->
-      <div class="p-6 rounded-xl card-hover" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mb-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h14M3 18h10" stroke="var(--emerald)" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="18" r="3" stroke="var(--emerald)" stroke-width="1.5"/></svg>
-        </div>
-        <h3 class="font-semibold mb-2" style="color:var(--text-100);">Session stitching</h3>
-        <p class="text-sm" style="color:var(--text-500);">Resume work from yesterday exactly where you left off. Continuity stitches sessions across time boundaries.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════ DIFFERENTIATION ═══════════════════════════ -->
-<section class="py-24 reveal" style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-5xl mx-auto px-6">
-    <div class="text-center mb-12">
-      <div class="section-label mb-4">Differentiation</div>
-      <h2 class="text-4xl font-bold" style="color:var(--text-100);">Not another AI tool.<br/><span style="color:var(--text-500);">The layer beneath them.</span></h2>
-    </div>
-
-    <div class="grid md:grid-cols-2 gap-6">
-      <!-- Traditional tools -->
-      <div class="p-6 rounded-xl" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-5" style="color:var(--text-500);">Traditional approach</div>
-        <div class="space-y-4">
-          <div class="flex gap-3 items-start p-3 rounded" style="border:1px solid var(--border);">
-            <span style="color:var(--rose);">✗</span>
-            <div>
-              <div class="text-sm font-medium mb-0.5" style="color:var(--text-300);">Context resets per session</div>
-              <div class="text-xs" style="color:var(--text-500);">Each new chat window is a clean slate. History requires manual copy-paste.</div>
-            </div>
-          </div>
-          <div class="flex gap-3 items-start p-3 rounded" style="border:1px solid var(--border);">
-            <span style="color:var(--rose);">✗</span>
-            <div>
-              <div class="text-sm font-medium mb-0.5" style="color:var(--text-300);">Single-tool isolation</div>
-              <div class="text-xs" style="color:var(--text-500);">What Copilot knows, Gemini doesn't. Tools operate in independent silos.</div>
-            </div>
-          </div>
-          <div class="flex gap-3 items-start p-3 rounded" style="border:1px solid var(--border);">
-            <span style="color:var(--amber);">✗</span>
-            <div>
-              <div class="text-sm font-medium mb-0.5" style="color:var(--text-300);">Cloud-dependent memory</div>
-              <div class="text-xs" style="color:var(--text-500);">Cloud memory products send your codebase context to third-party servers.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Continuity -->
-      <div class="p-6 rounded-xl" style="background:var(--emerald-dim);border:1px solid rgba(16,185,129,0.3);box-shadow:0 0 30px rgba(16,185,129,0.06);">
-        <div class="mono text-xs mb-5" style="color:var(--emerald);">Continuity</div>
-        <div class="space-y-4">
-          <div class="flex gap-3 items-start p-3 rounded" style="border:1px solid rgba(16,185,129,0.2);background:rgba(16,185,129,0.05);">
-            <span style="color:var(--emerald);">✓</span>
-            <div>
-              <div class="text-sm font-medium mb-0.5" style="color:var(--text-100);">Persistent context graph</div>
-              <div class="text-xs" style="color:var(--text-500);">Sessions connect across time. Context accumulates rather than resets.</div>
-            </div>
-          </div>
-          <div class="flex gap-3 items-start p-3 rounded" style="border:1px solid rgba(16,185,129,0.2);background:rgba(16,185,129,0.05);">
-            <span style="color:var(--emerald);">✓</span>
-            <div>
-              <div class="text-sm font-medium mb-0.5" style="color:var(--text-100);">Universal tool bridge</div>
-              <div class="text-xs" style="color:var(--text-500);">One shared context layer that all four AI tools read from and write to.</div>
-            </div>
-          </div>
-          <div class="flex gap-3 items-start p-3 rounded" style="border:1px solid rgba(16,185,129,0.2);background:rgba(16,185,129,0.05);">
-            <span style="color:var(--emerald);">✓</span>
-            <div>
-              <div class="text-sm font-medium mb-0.5" style="color:var(--text-100);">100% local — zero telemetry</div>
-              <div class="text-xs" style="color:var(--text-500);">Your context never leaves your machine. Built for teams with strict data policies.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════ USE CASE ═══════════════════════════ -->
-<section class="py-24 reveal" style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="grid md:grid-cols-2 gap-16 items-start">
-      <!-- Left -->
-      <div>
-        <div class="section-label mb-4">In Practice</div>
-        <h2 class="text-4xl font-bold mb-6" style="color:var(--text-100);">Mid-flight context switch.<br/><span style="color:var(--text-500);">Zero turbulence.</span></h2>
-        <p class="mb-6" style="color:var(--text-500);">You're deep in a refactor with Copilot. Context limit hits. Instead of losing 2 hours of reasoning, Continuity detects the failure, packages your context state, and resumes the session in Claude — in under 3 seconds. You keep coding.</p>
-        <div class="p-4 rounded-lg" style="background:var(--bg-surface);border:1px solid var(--border);">
-          <div class="mono text-xs mb-2" style="color:var(--text-500);">Real metrics from beta users</div>
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <div class="mono text-xl font-bold" style="color:var(--emerald);">94%</div>
-              <div class="text-xs" style="color:var(--text-500);">context preserved on switch</div>
-            </div>
-            <div>
-              <div class="mono text-xl font-bold" style="color:var(--emerald);">2.1s</div>
-              <div class="text-xs" style="color:var(--text-500);">avg rehydration time</div>
-            </div>
-            <div>
-              <div class="mono text-xl font-bold" style="color:var(--emerald);">3.2×</div>
-              <div class="text-xs" style="color:var(--text-500);">faster cross-tool sessions</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: Vertical timeline -->
-      <div class="space-y-0">
-        <!-- Step 1 -->
-        <div class="relative flex gap-4 pb-6">
-          <div class="relative flex flex-col items-center">
-            <div class="w-4 h-4 rounded-full border-2 shrink-0 mt-1" style="background:var(--bg-base);border-color:var(--sky);"></div>
-            <div class="timeline-line" style="background:linear-gradient(to bottom, var(--border), transparent);"></div>
-          </div>
-          <div class="pb-2">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="mono text-xs" style="color:var(--sky);">in_flight</span>
-              <span class="mono text-xs" style="color:var(--text-700);">14:22:00</span>
-            </div>
-            <div class="p-3 rounded-lg text-sm" style="background:var(--bg-surface);border:1px solid var(--border);color:var(--text-300);">
-              Deep in PaymentService refactor with Copilot — exponential backoff logic 60% complete.
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="relative flex gap-4 pb-6">
-          <div class="relative flex flex-col items-center">
-            <div class="w-4 h-4 rounded-full border-2 shrink-0 mt-1" style="background:var(--bg-base);border-color:var(--rose);"></div>
-            <div class="timeline-line"></div>
-          </div>
-          <div class="pb-2">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="mono text-xs" style="color:var(--rose);">context_limit_exceeded</span>
-              <span class="mono text-xs" style="color:var(--text-700);">14:29:55</span>
-            </div>
-            <div class="p-3 rounded-lg text-sm" style="background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.2);color:var(--text-300);">
-              Copilot: "I don't have context about the retry logic we discussed."
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="relative flex gap-4 pb-6">
-          <div class="relative flex flex-col items-center">
-            <div class="w-4 h-4 rounded-full border-2 shrink-0 mt-1 pulse-dot" style="background:var(--bg-base);border-color:var(--emerald);"></div>
-            <div class="timeline-line"></div>
-          </div>
-          <div class="pb-2">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="mono text-xs" style="color:var(--emerald);">auto_handoff</span>
-              <span class="mono text-xs" style="color:var(--text-700);">14:29:57</span>
-            </div>
-            <div class="p-3 rounded-lg text-sm" style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);color:var(--text-300);">
-              Continuity packaging context...
-            </div>
-            <div class="flex flex-wrap gap-1.5 mt-2">
-              <span class="chip" style="color:var(--emerald);border-color:rgba(16,185,129,0.3);">3 decisions</span>
-              <span class="chip" style="color:var(--rose);border-color:rgba(244,63,94,0.3);">2 anti-context</span>
-              <span class="chip" style="color:var(--sky);border-color:rgba(56,189,248,0.3);">2 file refs</span>
-              <span class="chip" style="color:var(--text-500);border-color:var(--border);">task state</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4 -->
-        <div class="relative flex gap-4">
-          <div class="relative flex flex-col items-center">
-            <div class="w-4 h-4 rounded-full border-2 shrink-0 mt-1" style="background:var(--emerald);border-color:var(--emerald);"></div>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="mono text-xs" style="color:var(--emerald);">resumed</span>
-              <span class="mono text-xs" style="color:var(--text-700);">14:30:00 (+2.1s)</span>
-            </div>
-            <div class="p-3 rounded-lg text-sm" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);color:var(--text-300);">
-              Claude: "Continuing PaymentService refactor. Implementing exponential backoff with base 200ms, max 30s ceiling, 5 retry limit before DLQ routing. Avoiding fixed delays as agreed..."
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════ PRICING ═══════════════════════════ -->
-<section id="pricing" class="py-24 reveal" style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="text-center mb-12">
-      <div class="section-label mb-4">Pricing</div>
-      <h2 class="text-4xl font-bold" style="color:var(--text-100);">Start free.<br/><span style="color:var(--text-500);">Scale when you're ready.</span></h2>
-    </div>
-
-    <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-      <!-- Free -->
-      <div class="p-6 rounded-xl" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-1" style="color:var(--text-500);">FREE</div>
-        <div class="text-3xl font-bold mb-1" style="color:var(--text-100);">$0</div>
-        <div class="text-sm mb-6" style="color:var(--text-500);">For individual devs getting started</div>
-        <div class="space-y-2.5 mb-8 text-sm" style="color:var(--text-300);">
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> 2 AI tools supported</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> 7-day context history</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> 50 events/session</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Manual handoffs</div>
-          <div class="flex items-center gap-2"><span style="color:var(--text-700);">–</span> Auto rehydration</div>
-          <div class="flex items-center gap-2"><span style="color:var(--text-700);">–</span> Session stitching</div>
-        </div>
-        <a href="#install" class="block w-full text-center py-2.5 rounded text-sm font-medium transition-colors" style="border:1px solid var(--border);color:var(--text-300);" onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--text-100)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-300)'">Install Free</a>
-      </div>
-
-      <!-- Pro -->
-      <div class="p-6 rounded-xl pro-glow relative" style="background:var(--bg-surface);">
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium" style="background:var(--emerald);color:#000;">recommended</div>
-        <div class="mono text-xs mb-1" style="color:var(--emerald);">PRO</div>
-        <div class="text-3xl font-bold mb-1" style="color:var(--text-100);">$12<span class="text-lg font-normal" style="color:var(--text-500);">/mo</span></div>
-        <div class="text-sm mb-6" style="color:var(--text-500);">For power devs who live in AI tools</div>
-        <div class="space-y-2.5 mb-8 text-sm" style="color:var(--text-300);">
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> All 4 tools (Copilot, Gemini, Claude, Codex)</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Unlimited context history</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Unlimited events/session</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Auto rehydration (2.1s avg)</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Session stitching</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Context analytics dashboard</div>
-        </div>
-        <a href="#install" class="block w-full text-center py-2.5 rounded text-sm font-medium transition-all" style="background:var(--emerald);color:#000;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Start Pro — $12/mo</a>
-      </div>
-
-      <!-- Enterprise -->
-      <div class="p-6 rounded-xl" style="background:var(--bg-surface);border:1px solid var(--border);">
-        <div class="mono text-xs mb-1" style="color:var(--text-500);">ENTERPRISE</div>
-        <div class="text-3xl font-bold mb-1" style="color:var(--text-100);">Custom</div>
-        <div class="text-sm mb-6" style="color:var(--text-500);">For teams with compliance requirements</div>
-        <div class="space-y-2.5 mb-8 text-sm" style="color:var(--text-300);">
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Everything in Pro</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Team context sharing</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Org-wide context policies</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> SSO + audit logs</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Air-gapped deployment</div>
-          <div class="flex items-center gap-2"><span style="color:var(--emerald);">✓</span> Dedicated support SLA</div>
-        </div>
-        <a href="mailto:enterprise@continuity.dev" class="block w-full text-center py-2.5 rounded text-sm font-medium transition-colors" style="border:1px solid var(--border);color:var(--text-300);" onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--text-100)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-300)'">Talk to Sales →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════ CLOSING CTA ═══════════════════════════ -->
-<section id="install" class="relative py-32 grid-bg grid-mask-closing reveal overflow-hidden" style="border-top:1px solid var(--border-dim);">
-  <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 50% 40% at 50% 100%, rgba(16,185,129,0.08) 0%, transparent 65%);"></div>
-  <div class="max-w-3xl mx-auto px-6 text-center relative">
-    <div class="section-label mb-6">Get Started</div>
-    <h2 class="text-5xl font-bold mb-6 leading-tight" style="color:var(--text-100);">
-      Your context.<br/><span style="color:var(--emerald);">Always intact.</span>
-    </h2>
-    <p class="text-lg mb-10" style="color:var(--text-500);">Install Continuity in 10 seconds. Start your first persistent AI session immediately. No config required.</p>
-
-    <div class="flex flex-wrap items-center justify-center gap-4 mb-6">
-      <a
-        href="https://marketplace.visualstudio.com/items?itemName=continuity.continuity"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="px-8 py-3.5 rounded font-medium transition-all"
-        style="background:var(--emerald);color:#000;"
-        onmouseover="this.style.boxShadow='0 0 30px rgba(16,185,129,0.4)'"
-        onmouseout="this.style.boxShadow='none'"
-      >
-        Install for VS Code — Free
-      </a>
-      <a
-        href="continuity-0.2.0.vsix"
-        download
-        class="px-8 py-3.5 rounded font-medium transition-colors"
-        style="border:1px solid var(--border);color:var(--text-300);"
-        onmouseover="this.style.borderColor='var(--emerald)'"
-        onmouseout="this.style.borderColor='var(--border)'"
-      >
-        Download VSIX
-      </a>
-    </div>
-    <div class="mono text-xs mb-2" style="color:var(--text-700);">
-      Direct install: <a href="vscode:extension/continuity.continuity" style="color:var(--text-300);text-decoration:underline;">vscode:extension/continuity.continuity</a>
-    </div>
-
-    <!-- Install command with copy -->
-    <div class="inline-flex items-center gap-3 px-4 py-3 rounded-lg" style="background:var(--bg-surface);border:1px solid var(--border);">
-      <kbd style="background:transparent;border:none;padding:0;">code --install-extension continuity.continuity</kbd>
-      <button id="copy-btn" onclick="
-        navigator.clipboard.writeText('code --install-extension continuity.continuity');
-        this.textContent='Copied!';
-        this.style.color='var(--emerald)';
-        setTimeout(()=>{this.textContent='Copy';this.style.color='var(--text-500)';},2000);
-      " class="mono text-xs transition-colors" style="color:var(--text-500);">Copy</button>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
-<footer style="border-top:1px solid var(--border-dim);">
-  <div class="max-w-7xl mx-auto px-6 py-12">
-    <div class="grid md:grid-cols-5 gap-8 mb-10">
-      <!-- Brand -->
-      <div class="md:col-span-2">
-        <div class="flex items-center gap-2 mb-3">
-          <svg width="24" height="24" viewBox="0 0 28 28" fill="none"><rect x="1" y="1" width="26" height="26" rx="4" fill="var(--emerald-dim)" stroke="var(--emerald)" stroke-width="1.5"/><rect x="7" y="7" width="14" height="14" rx="2" fill="none" stroke="var(--emerald)" stroke-width="1.5"/><rect x="10" y="10" width="8" height="8" rx="1" fill="var(--emerald)" opacity="0.7"/></svg>
-          <span class="font-semibold" style="color:var(--text-100);">Continuity</span>
-        </div>
-        <p class="text-sm" style="color:var(--text-500);">Persistent AI context for developers. Cross-model. Local-first. Zero re-priming.</p>
-        <div class="mono text-xs mt-3" style="color:var(--text-700);">v0.2.0 · MIT License</div>
-      </div>
-
-      <!-- Product -->
-      <div>
-        <div class="mono text-xs mb-4" style="color:var(--text-500);">PRODUCT</div>
-        <div class="space-y-2.5 text-sm" style="color:var(--text-500);">
-          <a href="#" class="block hover:text-white transition-colors">Features</a>
-          <a href="#pricing" class="block hover:text-white transition-colors">Pricing</a>
-          <a href="#" class="block hover:text-white transition-colors">Changelog</a>
-          <a href="#" class="block hover:text-white transition-colors">Roadmap</a>
-        </div>
-      </div>
-
-      <!-- Developers -->
-      <div>
-        <div class="mono text-xs mb-4" style="color:var(--text-500);">DEVELOPERS</div>
-        <div class="space-y-2.5 text-sm" style="color:var(--text-500);">
-          <a href="#" class="block hover:text-white transition-colors">Documentation</a>
-          <a href="#" class="block hover:text-white transition-colors">API Reference</a>
-          <a href="#" class="block hover:text-white transition-colors">GitHub</a>
-          <a href="#" class="block hover:text-white transition-colors">Extension SDK</a>
-        </div>
-      </div>
-
-      <!-- Company -->
-      <div>
-        <div class="mono text-xs mb-4" style="color:var(--text-500);">COMPANY</div>
-        <div class="space-y-2.5 text-sm" style="color:var(--text-500);">
-          <a href="#" class="block hover:text-white transition-colors">About</a>
-          <a href="#" class="block hover:text-white transition-colors">Blog</a>
-          <a href="#" class="block hover:text-white transition-colors">Careers</a>
-          <a href="mailto:enterprise@continuity.dev" class="block hover:text-white transition-colors">Contact</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- lokisdata partnership strip -->
-    <div class="mb-6 p-5 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4" style="background:var(--bg-elevated);border:1px solid var(--border);">
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.2));border:1px solid rgba(124,58,237,0.3);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="url(#lkGrad)" stroke-width="1.5" stroke-linejoin="round"/><defs><linearGradient id="lkGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs></svg>
-        </div>
-        <div>
-          <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-semibold" style="color:var(--text-100);">Powered by Lokis Data</span>
-            <span class="chip" style="color:var(--emerald-400);border-color:rgba(124,58,237,0.3);background:var(--emerald-dim);">partner</span>
-          </div>
-          <p class="text-xs" style="color:var(--text-500);">Continuity's context persistence and analytics infrastructure is built on <a href="https://lokisdata.com" target="_blank" rel="noopener" class="transition-colors" style="color:var(--emerald-400);" onmouseover="this.style.color='var(--cyan-400)'" onmouseout="this.style.color='var(--emerald-400)'">lokisdata.com</a> — a developer-first data platform for AI-native applications.</p>
-        </div>
-      </div>
-      <a href="https://lokisdata.com" target="_blank" rel="noopener" class="shrink-0 px-4 py-2 rounded-lg text-xs font-medium mono transition-all" style="background:var(--bg-surface);border:1px solid var(--border);color:var(--text-300);" onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--text-100)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-300)'">
-        Visit lokisdata.com →
-      </a>
-    </div>
-
-    <!-- Legal bar -->
-    <div class="pt-6 flex flex-wrap justify-between items-center gap-4" style="border-top:1px solid var(--border-dim);">
-      <div class="mono text-xs" style="color:var(--text-700);">© 2026 Continuity. All rights reserved.</div>
-      <div class="flex gap-5 text-xs" style="color:var(--text-700);">
-        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-        <a href="#" class="hover:text-white transition-colors">Security</a>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<!-- ═══════════════════════════ TWEAK PANEL ═══════════════════════════ -->
-<div id="tweak-panel">
-  <div class="flex items-center justify-between mb-3">
-    <span class="mono text-xs" style="color:var(--text-300);">tweaks.panel</span>
-    <button onclick="document.getElementById('tweak-panel').style.display='none';document.getElementById('tweak-open-btn').style.display='flex';" class="mono text-xs" style="color:var(--text-700);">✕</button>
-  </div>
-
-  <!-- Theme -->
-  <div class="mb-3">
-    <div class="mono text-xs mb-2" style="color:var(--text-500);">theme</div>
-    <div class="flex gap-2">
-      <button id="btn-dark" onclick="setTheme('dark')" class="flex-1 py-1.5 rounded mono text-xs transition-colors" style="background:var(--bg-elevated);border:1px solid var(--emerald);color:var(--emerald);">Dark</button>
-      <button id="btn-light" onclick="setTheme('light')" class="flex-1 py-1.5 rounded mono text-xs transition-colors" style="background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-500);">Light</button>
-    </div>
-  </div>
-
-  <!-- Animations -->
-  <div>
-    <div class="mono text-xs mb-2" style="color:var(--text-500);">animations</div>
-    <div class="flex gap-2">
-      <button id="btn-anim-on" onclick="setAnim('on')" class="flex-1 py-1.5 rounded mono text-xs transition-colors" style="background:var(--bg-elevated);border:1px solid var(--emerald);color:var(--emerald);">On</button>
-      <button id="btn-anim-off" onclick="setAnim('off')" class="flex-1 py-1.5 rounded mono text-xs transition-colors" style="background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-500);">Off</button>
-    </div>
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <span class="ticker-item"><span class="dot"></span>context window hit → state captured</span>
+    <span class="ticker-item"><span class="dot"></span>architecture decisions preserved</span>
+    <span class="ticker-item"><span class="dot"></span>anti-context carried forward</span>
+    <span class="ticker-item"><span class="dot"></span>paste into claude, gemini, copilot, cursor</span>
+    <span class="ticker-item"><span class="dot"></span>no config, no prompts to write</span>
+    <span class="ticker-item"><span class="dot"></span>in-flight reasoning chains intact</span>
+    <span class="ticker-item"><span class="dot"></span>enterprise air-gap ready</span>
+    <span class="ticker-item"><span class="dot"></span>you control when context is transferred</span>
+    <span class="ticker-item"><span class="dot"></span>context window hit → state captured</span>
+    <span class="ticker-item"><span class="dot"></span>architecture decisions preserved</span>
+    <span class="ticker-item"><span class="dot"></span>anti-context carried forward</span>
+    <span class="ticker-item"><span class="dot"></span>paste into claude, gemini, copilot, cursor</span>
+    <span class="ticker-item"><span class="dot"></span>no config, no prompts to write</span>
+    <span class="ticker-item"><span class="dot"></span>in-flight reasoning chains intact</span>
+    <span class="ticker-item"><span class="dot"></span>enterprise air-gap ready</span>
+    <span class="ticker-item"><span class="dot"></span>you control when context is transferred</span>
   </div>
 </div>
 
-<button id="tweak-open-btn" style="display:none;" onclick="document.getElementById('tweak-panel').style.display='block';document.getElementById('tweak-open-btn').style.display='none';" class="tweak-toggle-btn">
-  ⚙ tweaks
-</button>
+<!-- DEMO -->
+<section class="terminal-section" id="demo">
+  <p class="section-label">Context handoff demo</p>
+  <h2 class="section-heading">Context runs out.<br><em>Paste. Continue.</em></h2>
+  <p class="section-desc">
+    When the context window fills, Continuity generates a state packet. 
+    You paste it into any new chat window — same tool or a different one — and the session picks up 
+    exactly where it left off.
+  </p>
+
+  <div class="demo-layout">
+    <!-- Left: Session hitting limit -->
+    <div class="demo-panel">
+      <div class="demo-titlebar">
+        <span class="tool-badge badge-claude">Claude</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-left:6px;">Sonnet 3.7 · agent session</span>
+        <span class="transfer-indicator" style="color:var(--red);">context limit hit</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-msg">
+          <span class="msg-role user">you</span>
+          <span class="msg-content">Implement the token refresh middleware for the auth service. Turborepo monorepo, asymmetric JWTs. Don't use Redis — we had race conditions under load.</span>
+        </div>
+        <div class="demo-msg">
+          <span class="msg-role assistant">claude agent</span>
+          <span class="msg-content highlight">Created src/auth/middleware.ts with LRU store + Postgres write-through. Working on the background job now... [3200 tokens in]</span>
+        </div>
+        <div style="margin-top:16px;background:rgba(224,90,90,0.07);border:0.5px solid rgba(224,90,90,0.2);border-radius:6px;padding:12px 14px;">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:6px;">⚠ context window exhausted</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">Continuity captured last known state ↓</span>
+        </div>
+        <div style="margin-top:14px;">
+          <span class="context-tag transferred">arch: turborepo / asymmetric-jwt</span>
+          <span class="context-tag transferred">anti: redis (race conditions)</span>
+          <span class="context-tag transferred">done: middleware.ts created</span>
+          <span class="context-tag transferred">inflight: bg job — step 2/4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: New session after paste -->
+    <div class="demo-panel">
+      <div class="demo-titlebar">
+        <span class="tool-badge badge-copilot">GitHub Copilot</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-left:6px;">new chat window</span>
+        <span class="transfer-indicator" style="color:var(--accent);">state packet pasted</span>
+      </div>
+      <div class="demo-body">
+        <div style="background:var(--accent-dim2);border:0.5px solid rgba(26,107,74,0.2);border-radius:6px;padding:12px 14px;margin-bottom:18px;">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:6px;">Continuity state packet (pasted by you)</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-secondary);line-height:1.7;display:block;">
+            turborepo monorepo · asymmetric JWT<br>
+            <span style="color:var(--red);">NO redis</span> (race conditions at load)<br>
+            middleware.ts created ✓<br>
+            <span style="color:var(--accent);">inflight:</span> pg write-through bg job, step 2/4
+          </span>
+        </div>
+        <div class="demo-msg">
+          <span class="msg-role user">you</span>
+          <span class="msg-content">Continue — finish the background job.</span>
+        </div>
+        <div class="demo-msg">
+          <span class="msg-role assistant">copilot</span>
+          <span class="msg-content highlight">Picking up from step 2 — the write-through job. Since Redis is off the table, I'll use a Postgres-backed queue with a scheduled executor...</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-top:16px;">
+          <span style="color:var(--green);">●</span> Session resumed. Zero re-explaining.<span class="blink"> _</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <p class="section-label">Architecture</p>
+  <h2 class="section-heading">How it works</h2>
+  <p class="section-desc">
+    Four stages, all local. Nothing leaves your machine.
+  </p>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-index">01</div>
+      <div class="pipe-content">
+        <p class="pipe-title">Passive session observation</p>
+        <p class="pipe-desc">Continuity silently reads your AI agent's output as it runs — monitoring messages, code, decisions, and constraints. No prompts, no tags, no config required from the developer. It just watches.</p>
+      </div>
+      <div class="pipe-meta">
+        <span class="meta-chip auto">⚙ fully passive</span>
+        <span class="meta-chip local">⬡ reads, never writes</span>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-index">02</div>
+      <div class="pipe-content">
+        <p class="pipe-title">Context window limit detection</p>
+        <p class="pipe-desc">Continuity watches for the context limit signal from whichever tool you're in. The moment the session is about to be cut off, it triggers state capture — so nothing is lost in the truncation.</p>
+      </div>
+      <div class="pipe-meta">
+        <span class="meta-chip fast">⚡ &lt;1s capture</span>
+        <span class="meta-chip auto">⚙ automatic trigger</span>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-index">03</div>
+      <div class="pipe-content">
+        <p class="pipe-title">Last known state serialization</p>
+        <p class="pipe-desc">The captured state is serialized into a structured, human-readable context packet — decisions made, artifacts created, in-flight tasks, anti-context, and hard constraints. Stored locally in SQLite. Inspectable at any time from the VSCode status bar.</p>
+      </div>
+      <div class="pipe-meta">
+        <span class="meta-chip local">⬡ local SQLite store</span>
+        <span class="meta-chip fast">⚡ versioned + diff-able</span>
+      </div>
+    </div>
+    <div class="pipe-step" style="border-bottom:none;">
+      <div class="pipe-index">04</div>
+      <div class="pipe-content">
+        <p class="pipe-title">You paste. New session resumes.</p>
+        <p class="pipe-desc">Continuity surfaces the state packet with one click — copy to clipboard. You paste it as the opening message in any new chat window: same tool, different tool, doesn't matter. The AI has full context. You never re-explain anything.</p>
+      </div>
+      <div class="pipe-meta">
+        <span class="meta-chip auto">⚙ one-click copy</span>
+        <span class="meta-chip local">⬡ you control transfer</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CONTEXT SCHEMA -->
+<section class="schema-section" id="context">
+  <p class="section-label">Context schema</p>
+  <h2 class="section-heading">What gets captured</h2>
+  <p class="section-desc">
+    Context is not just code snippets. Continuity captures the <em>reasoning layer</em> — 
+    decisions, constraints, and what not to do.
+  </p>
+
+  <div class="schema-grid">
+    <div class="schema-card">
+      <div class="schema-icon decisions">⊕</div>
+      <p class="schema-title">Architecture decisions</p>
+      <p class="schema-desc">Structural choices made during the session — data models, service boundaries, design patterns adopted.</p>
+      <div class="schema-example">using turborepo monorepo<br>auth via asymmetric JWT<br>postgres as source of truth</div>
+    </div>
+    <div class="schema-card">
+      <div class="schema-icon anti">⊗</div>
+      <p class="schema-title">Anti-context</p>
+      <p class="schema-desc">Explicit rejections. Things the AI must not suggest again — failed approaches, banned dependencies, ruled-out patterns.</p>
+      <div class="schema-example">DO NOT use redis<br>  reason: race conditions at load<br>DO NOT suggest graphql</div>
+    </div>
+    <div class="schema-card">
+      <div class="schema-icon inflight">⊘</div>
+      <p class="schema-title">In-flight reasoning chains</p>
+      <p class="schema-desc">Incomplete explorations — hypotheses under investigation, multi-step plans partway through execution.</p>
+      <div class="schema-example">evaluating: lru → pg strategy<br>step 2/4 complete<br>next: write-through job</div>
+    </div>
+    <div class="schema-card">
+      <div class="schema-icon constraints">⊡</div>
+      <p class="schema-title">Hard constraints</p>
+      <p class="schema-desc">Non-negotiable requirements: performance targets, compliance boundaries, environment limits, team conventions.</p>
+      <div class="schema-example">p99 latency &lt; 80ms<br>no cloud egress (on-prem)<br>java 17 target</div>
+    </div>
+    <div class="schema-card">
+      <div class="schema-icon deps">⊞</div>
+      <p class="schema-title">Dependency graph snapshot</p>
+      <p class="schema-desc">Libraries, versions, and inter-service dependencies relevant to the current task — pulled from workspace metadata.</p>
+      <div class="schema-example">spring-boot: 3.2.0<br>turborepo: 1.11<br>@auth/service → @db/core</div>
+    </div>
+    <div class="schema-card">
+      <div class="schema-icon artifacts">⊟</div>
+      <p class="schema-title">Generated artifacts</p>
+      <p class="schema-desc">Code, configs, and diffs produced in the session — referenced by file path so they don't bloat the transfer payload.</p>
+      <div class="schema-example">src/auth/middleware.ts (new)<br>config/jwt.yaml (modified)<br>ref: session-d4f7b</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- TOOLS -->
+<section class="tools-section">
+  <p class="section-label">Compatibility</p>
+  <h2 class="section-heading">Works with every tool<br>in your <em>AI stack</em></h2>
+  <p class="section-desc">
+    State packets are plain text. Paste into any chat window — any tool, any direction.
+  </p>
+
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-logo" style="color:#ff9253;">Cl.</div>
+      <p class="tool-name">Claude (Anthropic)</p>
+      <p class="tool-status status-live">live</p>
+      <p class="tool-latency" style="color:var(--green);">observation ✓</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="color:#5b8fde;">Co.</div>
+      <p class="tool-name">GitHub Copilot</p>
+      <p class="tool-status status-live">live</p>
+      <p class="tool-latency" style="color:var(--green);">observation ✓</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="color:#4caf7d;">Ge.</div>
+      <p class="tool-name">Gemini Code Assist</p>
+      <p class="tool-status status-beta">beta</p>
+      <p class="tool-latency" style="color:var(--accent);">observation ✓</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="color:#a882ff;">Cu.</div>
+      <p class="tool-name">Cursor</p>
+      <p class="tool-status status-live">live</p>
+      <p class="tool-latency" style="color:var(--green);">observation ✓</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="color:var(--text-muted);">Co.</div>
+      <p class="tool-name">Codeium</p>
+      <p class="tool-status status-soon">coming soon</p>
+      <p class="tool-latency">Q3 2025</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="color:var(--text-muted);">Am.</div>
+      <p class="tool-name">Amazon Q</p>
+      <p class="tool-status status-soon">coming soon</p>
+      <p class="tool-latency">Q3 2025</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="color:var(--text-muted);">Wi.</div>
+      <p class="tool-name">Windsurf</p>
+      <p class="tool-status status-beta">beta</p>
+      <p class="tool-latency" style="color:var(--accent);">2.6s avg</p>
+    </div>
+    <div class="tool-card" style="border-style:dashed;opacity:0.5;">
+      <div class="tool-logo" style="color:var(--text-muted);">+</div>
+      <p class="tool-name" style="color:var(--text-muted);">Your tool</p>
+      <p class="tool-status status-soon">open schema</p>
+      <p class="tool-latency">contribute</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <p class="section-label">Beta feedback</p>
+  <h2 class="section-heading">From engineers who felt<br><em>the loss first.</em></h2>
+
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <p class="testimonial-quote">I switch between Claude and Copilot constantly. Before Continuity, each context reset meant a 10-minute tax of re-explaining the whole system. Now I paste the state packet and just continue.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">RM</div>
+        <div>
+          <p class="author-name">Rahul M.</p>
+          <p class="author-role">Staff Eng · fintech, Bengaluru</p>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <p class="testimonial-quote">The anti-context field is the feature I didn't know I needed. Telling the AI what NOT to suggest saves me from the same wrong answers every new session.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">SL</div>
+        <div>
+          <p class="author-name">Sofia L.</p>
+          <p class="author-role">Tech Lead · B2B SaaS, Berlin</p>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <p class="testimonial-quote">We evaluated it against manual prompt templates. Continuity is faster, captures more, and works without anyone on the team remembering to maintain the templates.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">JK</div>
+        <div>
+          <p class="author-name">James K.</p>
+          <p class="author-role">Principal Eng · healthcare platform, NYC</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-heading">Simple, local-first.<br><em>No subscriptions for air.</em></h2>
+
+  <div class="pricing-grid">
+    <!-- Free -->
+    <div class="pricing-card">
+      <p class="pricing-tier">Free</p>
+      <p class="pricing-price">$0 <sub>/ mo</sub></p>
+      <p class="pricing-cycle">no card required</p>
+      <ul class="pricing-features">
+        <li class="on">5 context captures / day</li>
+        <li class="on">All 6 context field types</li>
+        <li class="on">7-day capture history</li>
+        <li class="on">All supported AI tools</li>
+        <li class="on">100% local storage</li>
+        <li>20 captures / day</li>
+        <li>Unlimited history</li>
+        <li>Team context sharing</li>
+      </ul>
+      <a href="#install" class="pricing-cta cta-ghost">Install free</a>
+    </div>
+
+    <!-- Pro -->
+    <div class="pricing-card featured">
+      <p class="pricing-tier">Pro</p>
+      <p class="pricing-price">$5 <sub>/ mo</sub></p>
+      <p class="pricing-cycle">billed monthly · cancel anytime</p>
+      <ul class="pricing-features">
+        <li class="on">20 context captures / day</li>
+        <li class="on">All 6 context field types</li>
+        <li class="on">Unlimited history</li>
+        <li class="on">All supported AI tools</li>
+        <li class="on">100% local storage</li>
+        <li class="on">Context diff &amp; versioning</li>
+        <li>Team context sharing</li>
+      </ul>
+      <a href="#install" class="pricing-cta cta-accent">Start free trial</a>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="pricing-card">
+      <p class="pricing-tier">Enterprise</p>
+      <p class="pricing-price">$20 <sub>/ seat</sub></p>
+      <p class="pricing-cycle">per team member · billed monthly</p>
+      <ul class="pricing-features">
+        <li class="on">Everything in Pro</li>
+        <li class="on">Team context sharing</li>
+        <li class="on">Shared context library across team</li>
+        <li class="on">Air-gapped deployment</li>
+        <li class="on">SSO &amp; RBAC</li>
+        <li class="on">Audit log &amp; compliance export</li>
+        <li class="on">SLA + dedicated support</li>
+      </ul>
+      <a href="mailto:enterprise@continuity.dev" class="pricing-cta cta-ghost">Contact sales</a>
+    </div>
+
+    <p style="grid-column:1/-1;text-align:center;margin-top:1.5rem;font-family:var(--mono);font-size:11px;color:var(--text-muted);">
+      Enterprise minimum 5 seats · volume discounts available for 25+ seats
+    </p>
+  </div>
+
+  <p style="text-align:center;margin-top:2rem;font-family:var(--mono);font-size:11px;color:var(--text-muted);">
+    One capture = one AI-generated context packet. Your local history and storage are always unlimited and free.
+  </p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <img src="continuity_brand_logo.png" alt="Continuity" style="height:36px;width:auto;filter:brightness(0) saturate(100%) invert(52%) sepia(80%) saturate(400%) hue-rotate(115deg) brightness(90%);margin-bottom:12px;display:block;" />
+    <p>The persistence layer your AI workflow was missing. 100% local. Zero compromise.</p>
+    <p style="margin-top:16px;font-size:12px;color:var(--text-muted);font-family:var(--mono);">
+      A product of
+      <a href="#" style="color:var(--accent);text-decoration:none;font-weight:500;">LOKIS Data</a>
+    </p>
+  </div>
+  <div class="footer-links">
+    <h4>Product</h4>
+    <ul>
+      <li><a href="#">Download</a></li>
+      <li><a href="#">Changelog</a></li>
+      <li><a href="#">Roadmap</a></li>
+      <li><a href="#">Context schema spec</a></li>
+    </ul>
+  </div>
+  <div class="footer-links">
+    <h4>Developers</h4>
+    <ul>
+      <li><a href="#">API reference</a></li>
+      <li><a href="#">GitHub</a></li>
+      <li><a href="#">Contribute a connector</a></li>
+      <li><a href="#">VSCode marketplace</a></li>
+    </ul>
+  </div>
+  <div class="footer-links">
+    <h4>Company</h4>
+    <ul>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Privacy</a></li>
+      <li><a href="#">Security</a></li>
+      <li><a href="#">Enterprise</a></li>
+    </ul>
+  </div>
+</footer>
+
+<div class="footer-bottom">
+  <p>© 2025 Continuity · A product of <a href="#" style="color:var(--accent);text-decoration:none;">LOKIS Data</a></p>
+  <p style="color:var(--green);">● All context stays on your machine.</p>
+</div>
+
+</div><!-- /content -->
 
 <script>
-  // ── TWEAK DEFAULTS ──────────────────────────────────────────────
-  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "dark", "animations": "on" }/*EDITMODE-END*/;
-
-  let currentTheme = TWEAK_DEFAULTS.theme;
-  let currentAnim = TWEAK_DEFAULTS.animations;
-
-  function setTheme(t) {
-    currentTheme = t;
-    document.body.classList.toggle('theme-light', t === 'light');
-    document.getElementById('btn-dark').style.borderColor = t === 'dark' ? 'var(--emerald)' : 'var(--border)';
-    document.getElementById('btn-dark').style.color = t === 'dark' ? 'var(--emerald)' : 'var(--text-500)';
-    document.getElementById('btn-light').style.borderColor = t === 'light' ? 'var(--emerald)' : 'var(--border)';
-    document.getElementById('btn-light').style.color = t === 'light' ? 'var(--emerald)' : 'var(--text-500)';
-    if (window.__edit_mode_set_keys) window.__edit_mode_set_keys({ theme: t });
-  }
-
-  function setAnim(a) {
-    currentAnim = a;
-    document.body.classList.toggle('anim-off', a === 'off');
-    document.getElementById('btn-anim-on').style.borderColor = a === 'on' ? 'var(--emerald)' : 'var(--border)';
-    document.getElementById('btn-anim-on').style.color = a === 'on' ? 'var(--emerald)' : 'var(--text-500)';
-    document.getElementById('btn-anim-off').style.borderColor = a === 'off' ? 'var(--emerald)' : 'var(--border)';
-    document.getElementById('btn-anim-off').style.color = a === 'off' ? 'var(--emerald)' : 'var(--text-500)';
-    if (window.__edit_mode_set_keys) window.__edit_mode_set_keys({ animations: a });
-  }
-
-  // Apply defaults on load
-  setTheme(TWEAK_DEFAULTS.theme);
-  setAnim(TWEAK_DEFAULTS.animations);
-
-  // ── EDIT MODE HOST PROTOCOL ─────────────────────────────────────
-  window.__edit_mode_available = true;
-  window.__activate_edit_mode = function() {
-    document.getElementById('tweak-panel').style.display = 'block';
-  };
-  window.__deactivate_edit_mode = function() {
-    document.getElementById('tweak-panel').style.display = 'none';
-    document.getElementById('tweak-open-btn').style.display = 'flex';
-  };
-  window.__edit_mode_dismissed = function() {
-    document.getElementById('tweak-open-btn').style.display = 'flex';
-  };
-  window.__edit_mode_set_keys = function(keys) {
-    // Patch TWEAK_DEFAULTS in source — in a real host this would rewrite the script
-    if (keys.theme !== undefined) currentTheme = keys.theme;
-    if (keys.animations !== undefined) currentAnim = keys.animations;
-  };
-
-  // ── SCROLL REVEAL ───────────────────────────────────────────────
-  const revealEls = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-
-  revealEls.forEach(el => observer.observe(el));
-
-  // ── SMOOTH ANCHOR SCROLL ────────────────────────────────────────
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
+const ticker = document.getElementById('ticker');
+const clone = ticker.cloneNode(true);
+ticker.parentNode.appendChild(clone);
 </script>
 </body>
 </html>
