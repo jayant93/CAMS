@@ -18,11 +18,13 @@ From the moment VS Code starts, CAMS tracks which files you edit and records the
 
 When you focus a different AI chat panel, CAMS detects the switch in real time and writes a structured prompt to your clipboard. The prompt includes your current task goal, the files you touched, recent code changes, and any snapshots you saved. A status bar flash confirms it is ready to paste.
 
-### AI-enriched context (built in, no setup)
+### AI-enriched context
 
-CAMS includes AI extraction out of the box — no API key required. When you switch assistants or save a snapshot, it calls the CAMS service to infer a structured `goal`, `decisions`, `assumptions`, and `pending` list from your recent diffs and notes. The baseline local prompt is copied instantly; the AI-enriched version overwrites the clipboard within a few seconds if you have not pasted yet.
+When a hosted extraction service is configured, switching assistants or saving a snapshot can call that service to infer a structured `goal`, `decisions`, `assumptions`, and `pending` list. The baseline local prompt is copied first; an AI-enriched version can replace the clipboard shortly after if you have not pasted yet.
 
-Free tier gets 5 AI enrichments per day. Pro gets 50.
+**Open-source builds** ship with no default service URL. Deploy the Worker in `backend/` (see [Backend setup](#backend-extraction-service)), then set **`camsAI.ai.serviceUrl`** in VS Code to your deployment URL (or set `DEFAULT_SERVICE_URL` in `src/ai/serviceClient.ts` before packaging). End users of a published extension do not need their own OpenRouter key; the server holds it.
+
+Typical limits when using the reference Worker: free tier 5 AI enrichments per day, Pro (license key) 50 per day — enforced by your deployed service.
 
 ### Manual snapshots for important moments
 
@@ -45,7 +47,7 @@ GitHub Copilot · Claude · Gemini · ChatGPT · Codex · Continue · Cline · R
 | Handoff payload | Task goal, touched files, recent diffs, manual snapshots | Everything in Free + AI-inferred goal, decisions, assumptions, pending |
 | AI enrichments/day | 5 | 50 |
 | Handoff speed | Instant local baseline | Instant baseline + AI version in ~2-5 s |
-| Setup required | None | Enter license key via "CAMS: Configure Pro" |
+| Setup required | Set `camsAI.ai.serviceUrl` (or ship a build with a default URL) | Enter license key via **camsAI: Configure Pro** |
 
 ---
 
@@ -59,7 +61,7 @@ GitHub Copilot · Claude · Gemini · ChatGPT · Codex · Continue · Cline · R
 
 ### Upgrading to Pro
 
-Run **CAMS: Configure Pro** from the Command Palette and paste your license key. The status bar updates to `Pro` and your next handoff will include the higher daily limit.
+Run **camsAI: Configure Pro** from the Command Palette and paste your license key. The status bar updates to `Pro` and your next handoff will include the higher daily limit when your backend enforces it.
 
 ---
 
@@ -67,12 +69,12 @@ Run **CAMS: Configure Pro** from the Command Palette and paste your license key.
 
 | Command | What it does |
 |---|---|
-| `CAMS: Name Current Session` | Give the auto-started session a meaningful name |
-| `CAMS: Rename Current Session` | Rename the active session at any time |
-| `CAMS: Save Context Snapshot` | Paste or type a chat excerpt to preserve it |
-| `CAMS: Continue Task In...` | Manually trigger a handoff and choose the target assistant |
-| `CAMS: End Session` | Close the current session and start a fresh one |
-| `CAMS: Configure Pro` | Enter or remove your Pro license key |
+| `camsAI: Name Current Session` | Give the auto-started session a meaningful name |
+| `camsAI: Rename Current Session` | Rename the active session at any time |
+| `camsAI: Save Context Snapshot` | Paste or type a chat excerpt to preserve it |
+| `camsAI: Continue Task In...` | Manually trigger a handoff and choose the target assistant |
+| `camsAI: End Session` | Close the current session and start a fresh one |
+| `camsAI: Configure Pro` | Enter or remove your Pro license key |
 
 ---
 
@@ -80,15 +82,15 @@ Run **CAMS: Configure Pro** from the Command Palette and paste your license key.
 
 | Setting | Default | What it controls |
 |---|---|---|
-| `cams.offlineMode` | `false` | Disable all network calls; AI enrichment is skipped |
-| `cams.session.autoStart` | `true` | Auto-start a session when VS Code opens |
-| `cams.session.autoHandoffOnAssistantSwitch` | `true` | Auto-copy a handoff prompt on assistant switch |
-| `cams.ai.enrichHandoff` | `true` | Enrich handoffs with AI-inferred decisions and pending items |
-| `cams.ai.autoExtractOnSnapshot` | `true` | Run AI extraction automatically after each snapshot |
-| `cams.ai.serviceUrl` | `""` | Override the service URL (for self-hosted deployments) |
-| `cams.capture.enabled` | `true` | Record workspace file edits while a session is active |
-| `cams.capture.maxDiffChars` | `20000` | Per-diff character cap |
-| `cams.prompt.maxChars` | `30000` | Maximum size of the generated handoff prompt |
+| `camsAI.offlineMode` | `false` | Disable all network calls; AI enrichment is skipped |
+| `camsAI.session.autoStart` | `true` | Auto-start a session when VS Code opens |
+| `camsAI.session.autoHandoffOnAssistantSwitch` | `true` | Auto-copy a handoff prompt on assistant switch |
+| `camsAI.ai.enrichHandoff` | `true` | Enrich handoffs with AI-inferred decisions and pending items |
+| `camsAI.ai.autoExtractOnSnapshot` | `true` | Run AI extraction automatically after each snapshot |
+| `camsAI.ai.serviceUrl` | `""` | Extraction Worker URL (required unless your VSIX was built with `DEFAULT_SERVICE_URL`) |
+| `camsAI.capture.enabled` | `true` | Record workspace file edits while a session is active |
+| `camsAI.capture.maxDiffChars` | `20000` | Per-diff character cap |
+| `camsAI.prompt.maxChars` | `30000` | Maximum size of the generated handoff prompt |
 
 ---
 
@@ -98,7 +100,58 @@ All file capture is local. Your source code and diffs never leave your machine.
 
 When AI enrichment fires, **only the snapshot text you explicitly save** is transmitted to the CAMS service — never raw code files or diffs. The service uses this text to extract structured context and returns the result. No data is stored server-side beyond the request lifetime.
 
-Set `cams.offlineMode: true` to disable all network activity.
+Set `camsAI.offlineMode: true` to disable all network activity.
+
+---
+
+## Development
+
+### Clone and install
+
+```bash
+git clone <your-repo-url>
+cd CAMS
+npm install
+```
+
+### Compile and test
+
+```bash
+npm run compile
+npm test
+```
+
+### Package a VSIX and install in VS Code
+
+The extension uses [@vscode/vsce](https://github.com/microsoft/vscode-vsce) (already a dev dependency).
+
+```bash
+npm run compile
+npm run package
+```
+
+This produces a file like `camsAI-1.0.4.vsix` in the project root.
+
+**Install from VSIX in VS Code**
+
+1. Open VS Code.
+2. Open the Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`).
+3. Open the **⋯** menu on the Extensions panel header.
+4. Choose **Install from VSIX…** and select the generated `.vsix` file.
+5. Reload the window if prompted.
+
+For day-to-day extension development, press `F5` in VS Code with this folder opened (**Run Extension**) instead of installing a VSIX each time.
+
+### Backend (extraction service)
+
+The Cloudflare Worker in `backend/` performs AI extraction using your OpenRouter key. See **[backend/README.md](backend/README.md)** for `wrangler dev`, secrets, and deploy steps.
+
+After deploy, either set **`camsAI.ai.serviceUrl`** to your Worker URL (for local dev or internal builds) or set **`DEFAULT_SERVICE_URL`** in `src/ai/serviceClient.ts` before `npm run package` so end users do not need to configure the URL.
+
+### Repository hygiene (open source)
+
+- Never commit API keys, license secrets, or `.env` files.
+- Never commit **`backend/.wrangler/`** — it contains Wrangler cache and account metadata. It is gitignored; if you forked an old revision that still tracked it, remove it from history or rotate credentials.
 
 ---
 

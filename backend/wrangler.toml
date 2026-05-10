@@ -3,4 +3,4 @@ main = "index.ts"
 compatibility_date = "2023-12-01"
 
 [vars]
-OPENROUTER_MODEL = "deepseek/deepseek-chat:free"
+OPENROUTER_MODEL = "deepseek/deepseek-v4-flash"

@@ -9,11 +9,12 @@ import {
 
 /**
  * ─── Backend URL Configuration ───────────────────────────────────────────────
- * Change this single constant to point the extension at a different backend.
- * Users can also override it per-machine via the `cams.ai.serviceUrl` setting.
+ * Leave empty for open-source builds; set `camsAI.ai.serviceUrl` in VS Code
+ * settings after you deploy the extraction worker, or set a non-empty default
+ * here when publishing a build that points at your hosted service.
  * ──────────────────────────────────────────────────────────────────────────────
  */
-export const DEFAULT_SERVICE_URL = 'https://cams-service.cams-memory.workers.dev';
+export const DEFAULT_SERVICE_URL = '';
 
 const TIMEOUT_MS = 30_000;
 const MAX_INPUT_CHARS = 20_000;
