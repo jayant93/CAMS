@@ -5,8 +5,8 @@ import { AIProvider, AIProviderError, SessionNameResult } from './types';
 
 const DEFAULT_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const MAX_INPUT_CHARS = 20000;
-const REFERER = 'https://github.com/continuity-vscode/continuity';
-const APP_TITLE = 'Continuity VS Code Extension';
+const REFERER = 'https://github.com/cams-vscode/cams';
+const APP_TITLE = 'CAMS VS Code Extension';
 
 export interface OpenRouterConfig {
   apiKey: string;

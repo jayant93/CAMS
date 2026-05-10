@@ -3,20 +3,20 @@ import { resolveAIProvider } from '../ai';
 import { ConsentManager } from '../config/consent';
 import { SecretsStore } from '../config/secrets';
 import { TaskRepository } from '../storage/taskRepository';
-import { ContinuitySettings, ExtractionResult } from '../types';
+import { CamsSettings, ExtractionResult } from '../types';
 
 export interface SnapshotDeps {
   repository: TaskRepository;
   secrets: SecretsStore;
   consent: ConsentManager;
-  settings: () => ContinuitySettings;
+  settings: () => CamsSettings;
   output: vscode.OutputChannel;
 }
 
 export async function snapshotTask(deps: SnapshotDeps): Promise<void> {
   const activeTask = await deps.repository.getActiveTask();
   if (!activeTask) {
-    await vscode.window.showWarningMessage('Continuity: no active session yet — try again in a moment.');
+    await vscode.window.showWarningMessage('CAMS: no active session yet — try again in a moment.');
     return;
   }
 
@@ -31,40 +31,40 @@ export async function snapshotTask(deps: SnapshotDeps): Promise<void> {
   const settings = deps.settings();
 
   if (!settings.aiAutoExtract) {
-    await vscode.window.showInformationMessage('Continuity: snapshot saved.');
+    await vscode.window.showInformationMessage('CAMS: snapshot saved.');
     return;
   }
   if (settings.offlineMode) {
-    await vscode.window.showInformationMessage('Continuity: snapshot saved (offline mode — extraction skipped).');
+    await vscode.window.showInformationMessage('CAMS: snapshot saved (offline mode — extraction skipped).');
     return;
   }
 
   const resolution = await resolveAIProvider(settings, deps.secrets);
   if (!resolution.provider) {
-    await vscode.window.showInformationMessage(`Continuity: snapshot saved. ${resolution.reason ?? ''}`.trim());
+    await vscode.window.showInformationMessage(`CAMS: snapshot saved. ${resolution.reason ?? ''}`.trim());
     return;
   }
 
   await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: 'Continuity: extracting context…'
+      title: 'CAMS: extracting context…'
     },
     async () => {
       try {
         const result = await resolution.provider!.extract(snapshot);
-        await persistExtraction(deps.repository, activeTask.id, result, 'continuity-service');
+        await persistExtraction(deps.repository, activeTask.id, result, 'cams-service');
         const total =
           result.decisions.length + result.assumptions.length + result.pending.length + (result.goal ? 1 : 0);
         await vscode.window.showInformationMessage(
           total === 0
-            ? 'Continuity: snapshot saved (nothing extractable found).'
-            : `Continuity: snapshot saved + ${total} item${total === 1 ? '' : 's'} extracted.`
+            ? 'CAMS: snapshot saved (nothing extractable found).'
+            : `CAMS: snapshot saved + ${total} item${total === 1 ? '' : 's'} extracted.`
         );
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         deps.output.appendLine(`AI extraction failed: ${message}`);
-        await vscode.window.showWarningMessage(`Continuity: snapshot saved, extraction failed — ${message}`);
+        await vscode.window.showWarningMessage(`CAMS: snapshot saved, extraction failed — ${message}`);
       }
     }
   );
@@ -96,7 +96,7 @@ async function getSnapshotText(): Promise<string | undefined> {
   if (selectedText.length > 0) return selectedText;
 
   const pasted = await vscode.window.showInputBox({
-    title: 'Continuity: Save Context Snapshot',
+    title: 'CAMS: Save Context Snapshot',
     prompt: 'Paste the AI chat text you want to preserve.',
     placeHolder: 'Paste conversation context here…',
     ignoreFocusOut: true
@@ -104,7 +104,7 @@ async function getSnapshotText(): Promise<string | undefined> {
 
   const value = pasted?.trim();
   if (!value) {
-    await vscode.window.showWarningMessage('Continuity: empty snapshots are ignored.');
+    await vscode.window.showWarningMessage('CAMS: empty snapshots are ignored.');
     return undefined;
   }
   return value;

@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
 import { schemaSql } from './migrations';
 
-export class ContinuityDatabase {
+export class CamsDatabase {
   private sql?: SqlJsStatic;
   private db?: Database;
   private dbPath?: string;
@@ -26,7 +26,7 @@ export class ContinuityDatabase {
       locateFile: (file) => path.join(wasmDir, file)
     });
 
-    this.dbPath = path.join(storageFsPath, 'continuity.sqlite');
+    this.dbPath = path.join(storageFsPath, 'cams.sqlite');
 
     try {
       const bytes = await fs.readFile(this.dbPath);
@@ -42,7 +42,7 @@ export class ContinuityDatabase {
 
   get database(): Database {
     if (!this.db) {
-      throw new Error('Continuity database has not been initialized.');
+      throw new Error('CAMS database has not been initialized.');
     }
     return this.db;
   }
@@ -51,7 +51,7 @@ export class ContinuityDatabase {
     const db = this.database;
     const dbPath = this.dbPath;
     if (!dbPath) {
-      throw new Error('Continuity database path has not been initialized.');
+      throw new Error('CAMS database path has not been initialized.');
     }
 
     this.writeQueue = this.writeQueue.then(async () => {

@@ -1,5 +1,5 @@
 /**
- * Consent is no longer required — the extension calls Continuity's own hosted
+ * Consent is no longer required — the extension calls CAMS's own hosted
  * service, not a user-supplied third-party key. No personal code or diffs are
  * ever sent; only the snapshot text the user explicitly saves is transmitted.
  *

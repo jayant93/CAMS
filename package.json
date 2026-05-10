@@ -1,10 +1,10 @@
 {
-  "name": "continuity",
-  "displayName": "Continuity - AI Context Handoff",
-  "description": "Never lose context when switching AI assistants. Continuity silently tracks your edits and auto-copies a structured handoff prompt the moment you open a different AI chat panel.",
-  "version": "0.2.0",
-  "publisher": "continuity",
-  "icon": "images/icon.png",
+  "name": "camsAI",
+  "displayName": "camsAI - AI Context Handoff",
+  "description": "Never lose context when switching AI assistants. camsAI silently tracks your edits and auto-copies a structured handoff prompt the moment you open a different AI chat panel.",
+  "version": "1.0.4",
+  "publisher": "camsAI",
+  "icon": "extension/images/icon.png",
   "galleryBanner": {
     "color": "#1e1e2e",
     "theme": "dark"
@@ -18,17 +18,17 @@
     "gemini",
     "chatgpt",
     "cline",
-    "continue",
+    "camsAI",
     "productivity"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/continuity-vscode/continuity.git"
+    "url": "https://github.com/camsAI-vscode/camsAI.git"
   },
   "bugs": {
-    "url": "https://github.com/continuity-vscode/continuity/issues"
+    "url": "https://github.com/camsAI-vscode/camsAI/issues"
   },
-  "homepage": "https://github.com/continuity-vscode/continuity#readme",
+  "homepage": "https://github.com/camsAI-vscode/camsAI#readme",
   "license": "MIT",
   "engines": {
     "vscode": "^1.95.0"
@@ -44,102 +44,125 @@
   "contributes": {
     "commands": [
       {
-        "command": "continuity.startTask",
-        "title": "Continuity: Name Current Session",
-        "category": "Continuity"
+        "command": "camsAI.startTask",
+        "title": "camsAI: Name Current Session",
+        "category": "camsAI"
       },
       {
-        "command": "continuity.renameTask",
-        "title": "Continuity: Rename Current Session",
-        "category": "Continuity"
+        "command": "camsAI.renameTask",
+        "title": "camsAI: Rename Current Session",
+        "category": "camsAI"
       },
       {
-        "command": "continuity.snapshotTask",
-        "title": "Continuity: Save Context Snapshot",
-        "category": "Continuity"
+        "command": "camsAI.snapshotTask",
+        "title": "camsAI: Save Context Snapshot",
+        "category": "camsAI"
       },
       {
-        "command": "continuity.continueTask",
-        "title": "Continuity: Continue Task In...",
-        "category": "Continuity"
+        "command": "camsAI.continueTask",
+        "title": "camsAI: Continue Task In...",
+        "category": "camsAI"
       },
       {
-        "command": "continuity.endTask",
-        "title": "Continuity: End Session",
-        "category": "Continuity"
+        "command": "camsAI.endTask",
+        "title": "camsAI: End Session",
+        "category": "camsAI"
       },
       {
-        "command": "continuity.configureAI",
-        "title": "Continuity: Configure Pro",
-        "category": "Continuity"
+        "command": "camsAI.configureAI",
+        "title": "camsAI: Configure Pro",
+        "category": "camsAI"
       },
       {
-        "command": "continuity.refreshTier",
-        "title": "Continuity: Refresh Tier Indicator",
-        "category": "Continuity"
+        "command": "camsAI.refreshTier",
+        "title": "camsAI: Refresh Tier Indicator",
+        "category": "camsAI"
+      },
+      {
+        "command": "camsAI.openSidebar",
+        "title": "camsAI: Open Panel",
+        "category": "camsAI"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "camsAI-container",
+          "title": "camsAI",
+          "icon": "extension/images/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "camsAI-container": [
+        {
+          "type": "webview",
+          "id": "camsAI.sidebar",
+          "name": "camsAI"
+        }
+      ]
+    },
     "configuration": {
-      "title": "Continuity",
+      "title": "camsAI",
       "properties": {
-        "continuity.offlineMode": {
+        "camsAI.offlineMode": {
           "type": "boolean",
           "default": false,
           "description": "Disable all network calls. AI extraction and enrichment are skipped."
         },
-        "continuity.capture.enabled": {
+        "camsAI.capture.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Capture workspace file edits while a Continuity session is active."
+          "description": "Capture workspace file edits while a camsAI session is active."
         },
-        "continuity.capture.maxDiffChars": {
+        "camsAI.capture.maxDiffChars": {
           "type": "number",
           "default": 20000,
           "minimum": 1000,
           "description": "Maximum number of characters stored for a single file diff."
         },
-        "continuity.capture.flushIntervalMs": {
+        "camsAI.capture.flushIntervalMs": {
           "type": "number",
           "default": 3000,
           "minimum": 500,
           "description": "Debounce interval (ms) before persisting a captured file edit."
         },
-        "continuity.prompt.maxChars": {
+        "camsAI.prompt.maxChars": {
           "type": "number",
           "default": 30000,
           "minimum": 4000,
           "description": "Maximum character budget for generated handoff prompts."
         },
-        "continuity.session.autoStart": {
+        "camsAI.session.autoStart": {
           "type": "boolean",
           "default": true,
           "description": "Automatically start a rolling session when VS Code opens."
         },
-        "continuity.session.idleTimeoutMinutes": {
+        "camsAI.session.idleTimeoutMinutes": {
           "type": "number",
           "default": 30,
           "minimum": 5,
           "description": "Reserved for future idle-rotation behaviour. Currently informational."
         },
-        "continuity.session.autoHandoffOnAssistantSwitch": {
+        "camsAI.session.autoHandoffOnAssistantSwitch": {
           "type": "boolean",
           "default": true,
           "description": "Automatically copy a handoff prompt to the clipboard when you switch AI assistant panels."
         },
-        "continuity.ai.enrichHandoff": {
+        "camsAI.ai.enrichHandoff": {
           "type": "boolean",
           "default": true,
           "description": "Enrich auto-handoffs and snapshots with AI-inferred goal, decisions, assumptions, and pending items."
         },
-        "continuity.ai.autoExtractOnSnapshot": {
+        "camsAI.ai.autoExtractOnSnapshot": {
           "type": "boolean",
           "default": true,
           "description": "Automatically run AI extraction when you save a context snapshot."
         },
-        "continuity.ai.serviceUrl": {
+        "camsAI.ai.serviceUrl": {
           "type": "string",
           "default": "",
-          "description": "Override the Continuity extraction service URL (leave blank to use the default)."
+          "description": "Override the camsAI extraction service URL (leave blank to use the default)."
         }
       }
     }

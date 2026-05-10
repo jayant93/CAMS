@@ -6,17 +6,17 @@ export interface StatusBarTier {
   detail: string;
 }
 
-export class ContinuityStatusBar implements vscode.Disposable {
+export class CamsStatusBar implements vscode.Disposable {
   private readonly item: vscode.StatusBarItem;
   private currentTask?: Task;
   private tier: StatusBarTier = {
     label: 'Free',
-    detail: 'Local-only handoff. Run "Continuity: Configure AI" to unlock AI-enriched Pro handoff.'
+    detail: 'Local-only handoff. Run "CAMS: Configure AI" to unlock AI-enriched Pro handoff.'
   };
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    this.item.command = 'continuity.continueTask';
+    this.item.command = 'camsAI.continueTask';
     this.render();
     this.item.show();
   }
@@ -34,17 +34,17 @@ export class ContinuityStatusBar implements vscode.Disposable {
   private render(): void {
     const icon = this.tier.label === 'Pro' || this.tier.label === 'Offline' ? '$(sparkle)' : '$(history)';
     if (this.currentTask) {
-      this.item.text = `${icon} Continuity: ${this.currentTask.name}`;
+      this.item.text = `${icon} CAMS: ${this.currentTask.name}`;
       this.item.tooltip =
         `Active session: ${this.currentTask.name}\n` +
         `Tier: ${this.tier.label} — ${this.tier.detail}\n` +
         `Click to copy a handoff prompt.`;
     } else {
-      this.item.text = `${icon} Continuity: idle`;
+      this.item.text = `${icon} CAMS: idle`;
       this.item.tooltip =
-        `Continuity is idle.\n` +
+        `CAMS is idle.\n` +
         `Tier: ${this.tier.label} — ${this.tier.detail}\n` +
-        `Click to copy a handoff prompt or run a Continuity command.`;
+        `Click to copy a handoff prompt or run a CAMS command.`;
     }
   }
 

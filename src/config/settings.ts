@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { ContinuitySettings } from '../types';
+import { CamsSettings } from '../types';
 import { DEFAULT_SERVICE_URL } from '../ai/serviceClient';
 
-export function getContinuitySettings(): ContinuitySettings {
-  const root = vscode.workspace.getConfiguration('continuity');
-  const captureCfg = vscode.workspace.getConfiguration('continuity.capture');
-  const promptCfg = vscode.workspace.getConfiguration('continuity.prompt');
-  const aiCfg = vscode.workspace.getConfiguration('continuity.ai');
-  const sessionCfg = vscode.workspace.getConfiguration('continuity.session');
+export function getCamsSettings(): CamsSettings {
+  const root = vscode.workspace.getConfiguration('camsAI');
+  const captureCfg = vscode.workspace.getConfiguration('camsAI.capture');
+  const promptCfg = vscode.workspace.getConfiguration('camsAI.prompt');
+  const aiCfg = vscode.workspace.getConfiguration('camsAI.ai');
+  const sessionCfg = vscode.workspace.getConfiguration('camsAI.session');
 
   const serviceUrl = aiCfg.get<string>('serviceUrl', '').trim() || DEFAULT_SERVICE_URL;
 
@@ -26,9 +26,9 @@ export function getContinuitySettings(): ContinuitySettings {
   };
 }
 
-export function onContinuitySettingsChanged(listener: () => void): vscode.Disposable {
+export function onCamsSettingsChanged(listener: () => void): vscode.Disposable {
   return vscode.workspace.onDidChangeConfiguration((event) => {
-    if (event.affectsConfiguration('continuity')) {
+    if (event.affectsConfiguration('camsAI')) {
       listener();
     }
   });

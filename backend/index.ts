@@ -8,7 +8,7 @@
  *
  * Environment variables required:
  *   OPENROUTER_API_KEY   — your OpenRouter key (server-side only, never exposed)
- *   OPENROUTER_MODEL     — e.g. "openai/gpt-4o-mini" (default used if unset)
+ *   OPENROUTER_MODEL     — e.g. "deepseek/deepseek-chat:free" (default used if unset)
  *   FREE_DAILY_LIMIT     — requests/day for anonymous devices   (default: 5)
  *   PRO_DAILY_LIMIT      — requests/day for valid license keys  (default: 50)
  *   LICENSE_SECRET       — shared secret used to validate license keys (see below)
@@ -114,7 +114,7 @@ async function isValidLicenseKey(
 // OpenRouter call
 // ---------------------------------------------------------------------------
 
-const DEFAULT_MODEL = 'openai/gpt-4o-mini';
+const DEFAULT_MODEL = 'deepseek/deepseek-chat:free';
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 async function callOpenRouter(

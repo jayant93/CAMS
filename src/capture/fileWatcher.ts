@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { createPatch } from 'diff';
-import { getContinuitySettings } from '../config/settings';
+import { getCamsSettings } from '../config/settings';
 import { TaskRepository } from '../storage/taskRepository';
 
 interface PendingEdit {
@@ -68,7 +68,7 @@ export class FileWatcher implements vscode.Disposable {
   }
 
   private async onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent): Promise<void> {
-    const settings = getContinuitySettings();
+    const settings = getCamsSettings();
     if (!settings.captureEnabled || !this.shouldCaptureDocument(event.document)) {
       return;
     }
@@ -106,7 +106,7 @@ export class FileWatcher implements vscode.Disposable {
       timer: setTimeout(() => {
         this.pendingEdits.delete(uriKey);
         this.flushEdit(pending).catch((error) => {
-          this.output.appendLine(`Continuity file capture failed: ${error instanceof Error ? error.message : String(error)}`);
+          this.output.appendLine(`CAMS file capture failed: ${error instanceof Error ? error.message : String(error)}`);
         });
       }, settings.flushIntervalMs)
     };
@@ -115,10 +115,10 @@ export class FileWatcher implements vscode.Disposable {
   }
 
   private async flushEdit(edit: PendingEdit): Promise<void> {
-    const settings = getContinuitySettings();
+    const settings = getCamsSettings();
     let diff = createPatch(edit.filePath, edit.before, edit.after, 'before', 'after');
     if (diff.length > settings.maxDiffChars) {
-      diff = `${diff.slice(0, settings.maxDiffChars)}\n[Continuity truncated diff at ${settings.maxDiffChars} characters]`;
+      diff = `${diff.slice(0, settings.maxDiffChars)}\n[CAMS truncated diff at ${settings.maxDiffChars} characters]`;
     }
 
     await this.repository.addFileEdit(edit.taskId, edit.filePath, diff);

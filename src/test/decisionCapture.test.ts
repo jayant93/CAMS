@@ -94,7 +94,7 @@ test('Free mode: no "None captured" noise — only sections with content appear'
 
   // Sections with content exist
   assert.match(prompt, /Recent chat snapshots/);
-  assert.match(prompt, /Recent file diffs/);
+  assert.match(prompt, /Recent file changes/);
   assert.match(prompt, /Scope:/);
 });
 

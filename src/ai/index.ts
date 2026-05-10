@@ -1,6 +1,6 @@
-import { ContinuitySettings } from '../types';
+import { CamsSettings } from '../types';
 import { SecretsStore } from '../config/secrets';
-import { ContinuityServiceProvider, DEFAULT_SERVICE_URL } from './serviceClient';
+import { CamsServiceProvider, DEFAULT_SERVICE_URL } from './serviceClient';
 import { AIProvider } from './types';
 
 export interface ProviderResolution {
@@ -9,7 +9,7 @@ export interface ProviderResolution {
 }
 
 export async function resolveAIProvider(
-  settings: ContinuitySettings,
+  settings: CamsSettings,
   secrets: SecretsStore
 ): Promise<ProviderResolution> {
   if (settings.offlineMode) {
@@ -21,7 +21,7 @@ export async function resolveAIProvider(
   const deviceId = await secrets.getOrCreateDeviceId();
 
   return {
-    provider: new ContinuityServiceProvider({ serviceUrl, licenseKey, deviceId })
+    provider: new CamsServiceProvider({ serviceUrl, licenseKey, deviceId })
   };
 }
 

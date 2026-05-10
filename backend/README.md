@@ -1,6 +1,6 @@
-# Continuity Extraction Service
+# CAMS Extraction Service
 
-This is the server-side component for Continuity. It receives context bundles from
+This is the server-side component for CAMS. It receives context bundles from
 the VS Code extension, enforces per-device rate limits, and calls OpenRouter
 internally. Your OpenRouter key never leaves this server.
 
@@ -9,7 +9,7 @@ internally. Your OpenRouter key never leaves this server.
 ### Cloudflare Workers (recommended)
 
 ```bash
-npm create cloudflare@latest -- continuity-service --template=worker-typescript
+npm create cloudflare@latest -- cams-service --template=worker-typescript
 # Copy backend/index.ts into src/index.ts
 npx wrangler secret put OPENROUTER_API_KEY
 npx wrangler secret put LICENSE_SECRET
@@ -41,7 +41,7 @@ npx miniflare backend/index.ts
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
 | `OPENROUTER_API_KEY` | Yes | — | Your OpenRouter key (never sent to clients) |
-| `OPENROUTER_MODEL` | No | `openai/gpt-4o-mini` | Model to use for all extractions |
+| `OPENROUTER_MODEL` | No | `deepseek/deepseek-chat:free` | Model to use for all extractions |
 | `FREE_DAILY_LIMIT` | No | `5` | AI requests/day for anonymous (free) devices |
 | `PRO_DAILY_LIMIT` | No | `50` | AI requests/day for verified Pro license keys |
 | `LICENSE_SECRET` | No | — | HMAC secret for verifying license keys (leave empty to disable Pro tier) |
