@@ -17,8 +17,15 @@ export async function resolveAIProvider(
   }
 
   const licenseKey = await secrets.getLicenseKey();
-  const serviceUrl = settings.serviceUrl ?? DEFAULT_SERVICE_URL;
+  const serviceUrl = (settings.serviceUrl ?? DEFAULT_SERVICE_URL).trim();
   const deviceId = await secrets.getOrCreateDeviceId();
+
+  if (!serviceUrl) {
+    return {
+      reason:
+        'No extraction service URL is set. Deploy the backend (see `backend/README.md`), then set `camsAI.ai.serviceUrl` to your worker URL, or set `DEFAULT_SERVICE_URL` in `src/ai/serviceClient.ts` before packaging.'
+    };
+  }
 
   return {
     provider: new CamsServiceProvider({ serviceUrl, licenseKey, deviceId })

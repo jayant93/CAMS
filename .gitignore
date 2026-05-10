@@ -3,3 +3,9 @@ out/
 *.vsix
 .vscode-test/
 *.log
+
+# Wrangler local dev cache (account metadata, bundles — never commit)
+backend/.wrangler/
+
+# Marketing site (deploy separately; not part of extension repo)
+marketing-site/

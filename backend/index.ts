@@ -3,14 +3,12 @@
  * ==============================
  * Deploy this to any edge/serverless platform (Cloudflare Workers, Vercel,
  * Deno Deploy, Node + Express, etc.). It receives context bundles from the
- * VS Code extension, enforces per-device rate limits, and calls OpenRouter
+ * VS Code extension and calls OpenRouter
  * internally. Users never see your OpenRouter key.
  *
  * Environment variables required:
  *   OPENROUTER_API_KEY   — your OpenRouter key (server-side only, never exposed)
  *   OPENROUTER_MODEL     — e.g. "deepseek/deepseek-chat:free" (default used if unset)
- *   FREE_DAILY_LIMIT     — requests/day for anonymous devices   (default: 5)
- *   PRO_DAILY_LIMIT      — requests/day for valid license keys  (default: 50)
  *   LICENSE_SECRET       — shared secret used to validate license keys (see below)
  *
  * License key validation (simple HMAC scheme):
@@ -29,50 +27,6 @@ interface ExtractRequest {
   userText: string;
   deviceId: string;
   licenseKey?: string | null;
-}
-
-interface RateLimitEntry {
-  count: number;
-  windowStart: number; // Unix ms of the start of today's UTC window
-}
-
-// ---------------------------------------------------------------------------
-// In-memory rate limit store (replace with KV / Redis in production)
-// ---------------------------------------------------------------------------
-
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
-function todayWindowStart(): number {
-  const now = new Date();
-  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-}
-
-function checkAndIncrementLimit(
-  deviceId: string,
-  limit: number
-): { allowed: boolean; remaining: number; resetAt: string } {
-  const window = todayWindowStart();
-  const entry = rateLimitStore.get(deviceId);
-
-  if (!entry || entry.windowStart < window) {
-    // New day — reset counter
-    rateLimitStore.set(deviceId, { count: 1, windowStart: window });
-    return { allowed: true, remaining: limit - 1, resetAt: nextMidnightUTC() };
-  }
-
-  if (entry.count >= limit) {
-    return { allowed: false, remaining: 0, resetAt: nextMidnightUTC() };
-  }
-
-  entry.count += 1;
-  return { allowed: true, remaining: limit - entry.count, resetAt: nextMidnightUTC() };
-}
-
-function nextMidnightUTC(): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + 1);
-  d.setUTCHours(0, 0, 0, 0);
-  return d.toISOString();
 }
 
 // ---------------------------------------------------------------------------
@@ -117,6 +71,18 @@ async function isValidLicenseKey(
 const DEFAULT_MODEL = 'deepseek/deepseek-chat:free';
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
+class OpenRouterHttpError extends Error {
+  status: number;
+  detail: string;
+
+  constructor(status: number, detail: string) {
+    super(`OpenRouter returned ${status}: ${detail.slice(0, 500)}`);
+    this.name = 'OpenRouterHttpError';
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
 async function callOpenRouter(
   apiKey: string,
   model: string,
@@ -144,7 +110,7 @@ async function callOpenRouter(
 
   if (!response.ok) {
     const detail = await response.text().catch(() => '');
-    throw new Error(`OpenRouter returned ${response.status}: ${detail.slice(0, 200)}`);
+    throw new OpenRouterHttpError(response.status, detail || 'Unknown upstream error');
   }
 
   const json = (await response.json()) as {
@@ -193,32 +159,12 @@ export default {
       return json({ error: 'Missing required fields: task, systemPrompt, userText, deviceId.' }, 400);
     }
 
-    // -- Determine tier & limits ----------------------------------------------
+    // -- Determine tier --------------------------------------------------------
     const licenseSecret = env.LICENSE_SECRET ?? '';
     const isPro =
       !!licenseKey &&
       licenseSecret.length > 0 &&
       (await isValidLicenseKey(licenseKey, licenseSecret));
-
-    const freeLimit = parseInt(env.FREE_DAILY_LIMIT ?? '5', 10);
-    const proLimit = parseInt(env.PRO_DAILY_LIMIT ?? '50', 10);
-    const limit = isPro ? proLimit : freeLimit;
-
-    // -- Rate limit check -----------------------------------------------------
-    const { allowed, remaining, resetAt } = checkAndIncrementLimit(deviceId, limit);
-    if (!allowed) {
-      const hint = isPro
-        ? ''
-        : ' Upgrade to Pro for 50 requests/day.';
-      return json(
-        {
-          error: `Daily AI request limit reached (${limit}/day).${hint}`,
-          message: `Daily AI request limit reached (${limit}/day).${hint}`,
-          resetAt
-        },
-        429
-      );
-    }
 
     // -- Call OpenRouter ------------------------------------------------------
     const apiKey = env.OPENROUTER_API_KEY;
@@ -234,13 +180,28 @@ export default {
         { content },
         200,
         {
-          'X-RateLimit-Limit': String(limit),
-          'X-RateLimit-Remaining': String(remaining),
-          'X-RateLimit-Reset': resetAt,
           'X-Tier': isPro ? 'pro' : 'free'
         }
       );
     } catch (err) {
+      if (err instanceof OpenRouterHttpError) {
+        let parsedDetail: unknown = err.detail;
+        try {
+          parsedDetail = JSON.parse(err.detail);
+        } catch {
+          // Keep raw text detail when upstream body is not JSON.
+        }
+
+        return json(
+          {
+            error: 'OpenRouter upstream error',
+            upstreamStatus: err.status,
+            upstream: parsedDetail
+          },
+          err.status
+        );
+      }
+
       const message = err instanceof Error ? err.message : String(err);
       return json({ error: `Upstream error: ${message}` }, 502);
     }
